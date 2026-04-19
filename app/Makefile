@@ -6,6 +6,8 @@
 
 # Add source files here — one .o per .c
 app-obj-y += app_main.o
+app-obj-y += board/board_config.o
 
 # Expose app headers to the compiler
 APP_INCLUDES += -I$(APP_DIR)
+APP_INCLUDES += -I$(APP_DIR)/os_conf_include
