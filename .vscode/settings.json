@@ -1,0 +1,67 @@
+{
+    // ─────────────────────────────────────────────────────────────────────────
+    //  FreeRTOS-OS-App  —  Workspace Settings  (ROOT WORKSPACE)
+    //
+    //  Tool paths use empty strings → resolved from PATH on any machine.
+    //  Override per-machine in .vscode/settings.local.json (gitignored):
+    //    { "cortex-debug.armToolchainPath": "/opt/gcc-arm-none-eabi-13/bin" }
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // ── Cortex-Debug: resolve from PATH (works on any machine) ───────────────
+    "cortex-debug.armToolchainPath": "",
+    "cortex-debug.openocdPath": "",
+    "cortex-debug.gdbPath": "",
+
+    "cortex-debug.rtos.freertos.kernelPath": "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel",
+    "cortex-debug.variableUseNaturalFormat": true,
+
+    // ── C/C++ extension ───────────────────────────────────────────────────────
+    "C_Cpp.default.compilerPath": "arm-none-eabi-gcc",
+    "C_Cpp.default.intelliSenseMode": "gcc-arm",
+    "C_Cpp.default.cStandard": "gnu99",
+    "C_Cpp.errorSquiggles": "enabled",
+
+    // ── Editor ────────────────────────────────────────────────────────────────
+    "editor.formatOnSave": false,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.rulers": [100],
+
+    // ── File associations ─────────────────────────────────────────────────────
+    "files.associations": {
+        "*.h":   "c",
+        "*.c":   "c",
+        "*.ld":  "plaintext",
+        "*.cfg": "tcl",
+        "*.xml": "xml",
+        "*.svd": "xml",
+        "*.s":   "asm",
+        "*.S":   "asm"
+    },
+
+    // ── File explorer ─────────────────────────────────────────────────────────
+    "files.exclude": {
+        "FreeRTOS-OS/build/":                          true,
+        "**/*.o":                                      true,
+        "**/*.d":                                      true,
+        "FreeRTOS-OS/com_stack/canopen-stack/":        true
+    },
+
+    // ── Search exclusions ─────────────────────────────────────────────────────
+    "search.exclude": {
+        "FreeRTOS-OS/build/":                                   true,
+        "FreeRTOS-OS/arch/arm/CMSIS_6/":                        true,
+        "FreeRTOS-OS/arch/devices/STM/stm32f4xx-hal-driver/":   true,
+        "FreeRTOS-OS/kernel/FreeRTOS-Kernel/":                  true,
+        "FreeRTOS-OS/com_stack/":                               true
+    },
+
+    // ── Terminal ──────────────────────────────────────────────────────────────
+    "terminal.integrated.defaultProfile.linux":   "bash",
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.defaultProfile.osx":     "bash",
+
+    // ── Makefile tools ────────────────────────────────────────────────────────
+    "makefile.makePath": "make",
+    "makefile.buildLog": "${workspaceFolder}/FreeRTOS-OS/build/make.log"
+}

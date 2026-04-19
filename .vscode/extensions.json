@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "marus25.cortex-debug",
+        "ms-vscode.cpptools",
+        "ms-vscode.makefile-tools",
+        "ms-vscode.vscode-serial-monitor",
+        "ms-vscode.hexeditor",
+        "redhat.vscode-xml",
+        "ms-vscode.cpptools-extension-pack",
+        "eamodio.gitlens",
+        "ZixuanWang.linkerscript",
+        "dan-c-underwood.arm",
+        "cschlosser.doxdocgen"
+    ]
+}

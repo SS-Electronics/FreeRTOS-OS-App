@@ -1,0 +1,201 @@
+{
+    // ─────────────────────────────────────────────────────────────────────────
+    //  FreeRTOS-OS-App  —  VS Code Debug / Run Configurations  (ROOT WORKSPACE)
+    //
+    //  This file is used when VS Code is opened at the repo ROOT
+    //  (FreeRTOS-OS-App/).  If you open the FreeRTOS-OS/ subfolder directly,
+    //  use FreeRTOS-OS/.vscode/launch.json instead.
+    //
+    //  ${workspaceFolder} here = FreeRTOS-OS-App/
+    //  All paths are prefixed with FreeRTOS-OS/ accordingly.
+    //
+    //  AUTO TARGET DETECTION
+    //  ─────────────────────
+    //  preLaunchTask "build-and-detect" runs scripts/gen_active_debug.py which
+    //  reads FreeRTOS-OS/include/config/autoconf.h → CONFIG_TARGET_MCU →
+    //  writes FreeRTOS-OS/build/active_debug.cfg sourcing the correct
+    //  arch/debug_cfg/<mcu>_debug.cfg.  Changing MCU (make menuconfig) is all
+    //  that is needed — no launch.json edits required.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    "version": "0.2.0",
+    "configurations": [
+
+        // ── ①  Auto — Build, Flash & Debug (F5) ──────────────────────────────
+        {
+            "name": "Auto — Build, Flash & Debug",
+            "type": "cortex-debug",
+            "request": "launch",
+
+            "configFiles": [
+                "${workspaceFolder}/FreeRTOS-OS/build/active_debug.cfg"
+            ],
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "gdbPath": "arm-none-eabi-gdb",
+
+            "device": "STM32F4xx",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/active_target.svd",
+            "rtos": "FreeRTOS",
+
+            "preLaunchTask": "build-and-detect",
+            "runToEntryPoint": "main",
+
+            "preLaunchCommands": [
+                "set mem inaccessible-by-default off",
+                "set print pretty on",
+                "set print object on",
+                "set pagination off"
+            ],
+            "postLaunchCommands": [
+                "monitor reset halt"
+            ],
+
+            "showDevDebugOutput": "both",
+
+            "swoConfig": {
+                "enabled": false,
+                "cpuFrequency": 100000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    { "type": "console", "label": "ITM port 0", "port": 0, "encoding": "ascii" }
+                ]
+            }
+        },
+
+        // ── ②  Auto — Attach ─────────────────────────────────────────────────
+        {
+            "name": "Auto — Attach",
+            "type": "cortex-debug",
+            "request": "attach",
+
+            "configFiles": [
+                "${workspaceFolder}/FreeRTOS-OS/build/active_debug.cfg"
+            ],
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "gdbPath": "arm-none-eabi-gdb",
+
+            "device": "STM32F4xx",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/active_target.svd",
+            "rtos": "FreeRTOS",
+
+            "preLaunchTask": "detect-target",
+
+            "postLaunchCommands": [
+                "monitor halt",
+                "set mem inaccessible-by-default off",
+                "set print pretty on",
+                "set pagination off"
+            ],
+            "showDevDebugOutput": "both"
+        },
+
+        // ── ③  Auto — Flash Only (Run) ────────────────────────────────────────
+        {
+            "name": "Auto — Flash Only (Run)",
+            "type": "cortex-debug",
+            "request": "launch",
+
+            "configFiles": [
+                "${workspaceFolder}/FreeRTOS-OS/build/active_debug.cfg"
+            ],
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "gdbPath": "arm-none-eabi-gdb",
+
+            "device": "STM32F4xx",
+            "interface": "swd",
+
+            "preLaunchTask": "build-and-detect",
+            "runToEntryPoint": "",
+
+            "postLaunchCommands": [
+                "monitor reset run",
+                "disconnect",
+                "quit"
+            ],
+            "showDevDebugOutput": "raw"
+        },
+
+        // ── ④  STM32F411xE — explicit ─────────────────────────────────────────
+        {
+            "name": "STM32F411xE — Build, Flash & Debug",
+            "type": "cortex-debug",
+            "request": "launch",
+
+            "configFiles": [
+                "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/stm32_f411xx_debug.cfg"
+            ],
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "gdbPath": "arm-none-eabi-gdb",
+
+            "device": "STM32F411VE",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/STM32F411.svd",
+            "rtos": "FreeRTOS",
+
+            "preLaunchTask": "build",
+            "runToEntryPoint": "main",
+
+            "preLaunchCommands": [
+                "set mem inaccessible-by-default off",
+                "set print pretty on",
+                "set print object on",
+                "set pagination off"
+            ],
+            "postLaunchCommands": ["monitor reset halt"],
+            "showDevDebugOutput": "both",
+
+            "swoConfig": {
+                "enabled": false,
+                "cpuFrequency": 100000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    { "type": "console", "label": "ITM port 0", "port": 0, "encoding": "ascii" }
+                ]
+            }
+        },
+
+        // ── ⑤  STM32F401xE — explicit ─────────────────────────────────────────
+        {
+            "name": "STM32F401xE — Build, Flash & Debug",
+            "type": "cortex-debug",
+            "request": "launch",
+
+            "configFiles": [
+                "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/stm32_f401xx_debug.cfg"
+            ],
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "gdbPath": "arm-none-eabi-gdb",
+
+            "device": "STM32F401xE",
+            "interface": "swd",
+            "svdFile": "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/STM32F401.svd",
+            "rtos": "FreeRTOS",
+
+            "preLaunchTask": "build",
+            "runToEntryPoint": "main",
+
+            "preLaunchCommands": [
+                "set mem inaccessible-by-default off",
+                "set print pretty on",
+                "set print object on",
+                "set pagination off"
+            ],
+            "postLaunchCommands": ["monitor reset halt"],
+            "showDevDebugOutput": "both",
+
+            "swoConfig": {
+                "enabled": false,
+                "cpuFrequency": 84000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    { "type": "console", "label": "ITM port 0", "port": 0, "encoding": "ascii" }
+                ]
+            }
+        }
+    ]
+}

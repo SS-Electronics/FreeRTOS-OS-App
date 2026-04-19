@@ -1,0 +1,93 @@
+{
+    // ─────────────────────────────────────────────────────────────────────────
+    //  FreeRTOS-OS-App  —  IntelliSense Configuration  (ROOT WORKSPACE)
+    //
+    //  Used when VS Code is opened at FreeRTOS-OS-App/.
+    //  Paths are prefixed with FreeRTOS-OS/ compared to the inner workspace.
+    // ─────────────────────────────────────────────────────────────────────────
+    "configurations": [
+
+        // ── STM32F411xE (primary target) ──────────────────────────────────────
+        {
+            "name": "STM32F411xE",
+            "includePath": [
+                "${workspaceFolder}/FreeRTOS-OS",
+                "${workspaceFolder}/FreeRTOS-OS/include",
+                "${workspaceFolder}/FreeRTOS-OS/include/config",
+                "${workspaceFolder}/FreeRTOS-OS/include/services",
+                "${workspaceFolder}/FreeRTOS-OS/include/board",
+                "${workspaceFolder}/FreeRTOS-OS/include/ipc",
+                "${workspaceFolder}/FreeRTOS-OS/include/mm",
+                "${workspaceFolder}/FreeRTOS-OS/include/os",
+                "${workspaceFolder}/FreeRTOS-OS/include/drivers",
+                "${workspaceFolder}/FreeRTOS-OS/include/lib",
+                "${workspaceFolder}/FreeRTOS-OS/arch/arm/CMSIS_6",
+                "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/STM32F4xx",
+                "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/STM32F4xx/STM32F411",
+                "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/stm32f4xx-hal-driver/Inc",
+                "${workspaceFolder}/FreeRTOS-OS/kernel",
+                "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/include",
+                "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/FreeRTOS-OS/lib",
+                "${workspaceFolder}/app",
+                "${workspaceFolder}/app/board"
+            ],
+            "defines": [
+                "STM32F411xE",
+                "USE_HAL_DRIVER",
+                "__ARM_ARCH_7EM__",
+                "__FPU_PRESENT=1",
+                "ARM_MATH_CM4"
+            ],
+            "compilerPath": "arm-none-eabi-gcc",
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-arm",
+            "forcedInclude": [
+                "${workspaceFolder}/FreeRTOS-OS/include/config/autoconf.h"
+            ]
+        },
+
+        // ── STM32F401xE (secondary target) ───────────────────────────────────
+        {
+            "name": "STM32F401xE",
+            "includePath": [
+                "${workspaceFolder}/FreeRTOS-OS",
+                "${workspaceFolder}/FreeRTOS-OS/include",
+                "${workspaceFolder}/FreeRTOS-OS/include/config",
+                "${workspaceFolder}/FreeRTOS-OS/include/services",
+                "${workspaceFolder}/FreeRTOS-OS/include/board",
+                "${workspaceFolder}/FreeRTOS-OS/include/ipc",
+                "${workspaceFolder}/FreeRTOS-OS/include/mm",
+                "${workspaceFolder}/FreeRTOS-OS/include/os",
+                "${workspaceFolder}/FreeRTOS-OS/include/drivers",
+                "${workspaceFolder}/FreeRTOS-OS/include/lib",
+                "${workspaceFolder}/FreeRTOS-OS/arch/arm/CMSIS_6",
+                "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/STM32F4xx",
+                "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/STM32F4xx/STM32F401",
+                "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/stm32f4xx-hal-driver/Inc",
+                "${workspaceFolder}/FreeRTOS-OS/kernel",
+                "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/include",
+                "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/FreeRTOS-OS/lib",
+                "${workspaceFolder}/app",
+                "${workspaceFolder}/app/board"
+            ],
+            "defines": [
+                "STM32F401xE",
+                "USE_HAL_DRIVER",
+                "__ARM_ARCH_7EM__",
+                "__FPU_PRESENT=1",
+                "ARM_MATH_CM4"
+            ],
+            "compilerPath": "arm-none-eabi-gcc",
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-arm",
+            "forcedInclude": [
+                "${workspaceFolder}/FreeRTOS-OS/include/config/autoconf.h"
+            ]
+        }
+    ],
+    "version": 4
+}

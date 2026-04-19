@@ -1,0 +1,210 @@
+{
+    // ─────────────────────────────────────────────────────────────────────────
+    //  FreeRTOS-OS-App  —  VS Code Tasks  (ROOT WORKSPACE)
+    //
+    //  Used when VS Code is opened at FreeRTOS-OS-App/ (repo root).
+    //  All make commands run inside FreeRTOS-OS/ via  "cwd" setting.
+    // ─────────────────────────────────────────────────────────────────────────
+    "version": "2.0.0",
+    "tasks": [
+
+        // ── detect-target ─────────────────────────────────────────────────────
+        {
+            "label": "detect-target",
+            "detail": "Read CONFIG_TARGET_MCU from autoconf.h → write build/active_debug.cfg",
+            "type": "shell",
+            "command": "python3 scripts/gen_active_debug.py",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true,
+                "showReuseMessage": false
+            }
+        },
+
+        // ── build ─────────────────────────────────────────────────────────────
+        {
+            "label": "build",
+            "detail": "make all APP_DIR=../app — compile kernel + application",
+            "type": "shell",
+            "command": "make all APP_DIR=../app",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                {
+                    "owner": "gcc",
+                    "fileLocation": ["relative", "${workspaceFolder}/FreeRTOS-OS"],
+                    "pattern": {
+                        "regexp": "^(.+):(\\d+):(\\d+):\\s+(warning|error):\\s+(.+)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "severity": 4,
+                        "message": 5
+                    }
+                }
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+
+        // ── build-and-detect (preLaunchTask for Auto configs) ─────────────────
+        {
+            "label": "build-and-detect",
+            "detail": "Detect target MCU, then build — preLaunchTask for Auto debug configs",
+            "dependsOn": ["detect-target", "build"],
+            "dependsOrder": "sequence",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+
+        // ── build (custom board) ──────────────────────────────────────────────
+        {
+            "label": "build (custom board)",
+            "detail": "make all APP_DIR=../app CONFIG_BOARD=<name>",
+            "type": "shell",
+            "command": "make all APP_DIR=../app CONFIG_BOARD=${input:boardName}",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "problemMatcher": ["$gcc"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+
+        // ── flash ─────────────────────────────────────────────────────────────
+        {
+            "label": "flash",
+            "detail": "Detect target → build → program via OpenOCD → reset",
+            "type": "shell",
+            "command": "make flash",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "dependsOn": ["build-and-detect"],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": false
+            }
+        },
+
+        // ── board-gen ─────────────────────────────────────────────────────────
+        {
+            "label": "board-gen",
+            "detail": "Generate board_config.c + board_device_ids.h from board XML",
+            "type": "shell",
+            "command": "make board-gen APP_DIR=../app",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+
+        // ── clean ─────────────────────────────────────────────────────────────
+        {
+            "label": "clean",
+            "detail": "Remove build artifacts",
+            "type": "shell",
+            "command": "make clean APP_DIR=../app",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+
+        // ── menuconfig ────────────────────────────────────────────────────────
+        {
+            "label": "menuconfig",
+            "detail": "Open Kconfig menu — set CONFIG_TARGET_MCU, peripherals, clocks",
+            "type": "shell",
+            "command": "make menuconfig",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+
+        // ── config-outputs ────────────────────────────────────────────────────
+        {
+            "label": "config-outputs",
+            "detail": "Regenerate include/config/autoconf.h from .config",
+            "type": "shell",
+            "command": "make config-outputs",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+
+        // ── openocd-server ────────────────────────────────────────────────────
+        {
+            "label": "openocd-server",
+            "detail": "Start OpenOCD GDB server on :3333 (for Attach mode)",
+            "type": "shell",
+            "command": "python3 scripts/gen_active_debug.py && openocd -f build/active_debug.cfg -c \"gdb_port 3333\" -c \"telnet_port 4444\" -c \"tcl_port 6666\"",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "openocd",
+                "pattern": { "regexp": "^$" },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Open On-Chip Debugger",
+                    "endsPattern": "Listening on port 3333"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+
+        // ── install-debug-tools ───────────────────────────────────────────────
+        {
+            "label": "install-debug-tools",
+            "detail": "Download MCU SVD files + install Cortex-Debug extension",
+            "type": "shell",
+            "command": "bash scripts/install_debug_tools.sh",
+            "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        }
+    ],
+
+    "inputs": [
+        {
+            "id": "boardName",
+            "type": "promptString",
+            "description": "Board name (must match app/board/<name>.xml)",
+            "default": "stm32f411_devboard"
+        }
+    ]
+}
