@@ -26,11 +26,12 @@
             "name": "Auto — Build, Flash & Debug",
             "type": "cortex-debug",
             "request": "launch",
+            "servertype": "openocd",
 
             "configFiles": [
                 "${workspaceFolder}/FreeRTOS-OS/build/active_debug.cfg"
             ],
-            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/app.elf",
             "gdbPath": "arm-none-eabi-gdb",
 
             "device": "STM32F4xx",
@@ -69,11 +70,12 @@
             "name": "Auto — Attach",
             "type": "cortex-debug",
             "request": "attach",
+            "servertype": "openocd",
 
             "configFiles": [
                 "${workspaceFolder}/FreeRTOS-OS/build/active_debug.cfg"
             ],
-            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/app.elf",
             "gdbPath": "arm-none-eabi-gdb",
 
             "device": "STM32F4xx",
@@ -97,11 +99,12 @@
             "name": "Auto — Flash Only (Run)",
             "type": "cortex-debug",
             "request": "launch",
+            "servertype": "openocd",
 
             "configFiles": [
                 "${workspaceFolder}/FreeRTOS-OS/build/active_debug.cfg"
             ],
-            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/app.elf",
             "gdbPath": "arm-none-eabi-gdb",
 
             "device": "STM32F4xx",
@@ -123,11 +126,12 @@
             "name": "STM32F411xE — Build, Flash & Debug",
             "type": "cortex-debug",
             "request": "launch",
+            "servertype": "openocd",
 
             "configFiles": [
                 "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/stm32_f411xx_debug.cfg"
             ],
-            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/app.elf",
             "gdbPath": "arm-none-eabi-gdb",
 
             "device": "STM32F411VE",
@@ -163,11 +167,12 @@
             "name": "STM32F401xE — Build, Flash & Debug",
             "type": "cortex-debug",
             "request": "launch",
+            "servertype": "openocd",
 
             "configFiles": [
                 "${workspaceFolder}/FreeRTOS-OS/arch/debug_cfg/stm32_f401xx_debug.cfg"
             ],
-            "executable": "${workspaceFolder}/FreeRTOS-OS/build/kernel.elf",
+            "executable": "${workspaceFolder}/FreeRTOS-OS/build/app.elf",
             "gdbPath": "arm-none-eabi-gdb",
 
             "device": "STM32F401xE",

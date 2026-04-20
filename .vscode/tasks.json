@@ -27,9 +27,9 @@
         // ── build ─────────────────────────────────────────────────────────────
         {
             "label": "build",
-            "detail": "make all APP_DIR=../app — compile kernel + application",
+            "detail": "make all APP_DIR=../app TARGET_NAME=app — compile kernel + application",
             "type": "shell",
-            "command": "make all APP_DIR=../app",
+            "command": "make all APP_DIR=../app TARGET_NAME=app",
             "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
             "group": {
                 "kind": "build",
@@ -72,9 +72,9 @@
         // ── build (custom board) ──────────────────────────────────────────────
         {
             "label": "build (custom board)",
-            "detail": "make all APP_DIR=../app CONFIG_BOARD=<name>",
+            "detail": "make all APP_DIR=../app TARGET_NAME=app CONFIG_BOARD=<name>",
             "type": "shell",
-            "command": "make all APP_DIR=../app CONFIG_BOARD=${input:boardName}",
+            "command": "make all APP_DIR=../app TARGET_NAME=app CONFIG_BOARD=${input:boardName}",
             "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
             "problemMatcher": ["$gcc"],
             "presentation": {
@@ -120,7 +120,7 @@
             "label": "clean",
             "detail": "Remove build artifacts",
             "type": "shell",
-            "command": "make clean APP_DIR=../app",
+            "command": "make clean APP_DIR=../app TARGET_NAME=app",
             "options": { "cwd": "${workspaceFolder}/FreeRTOS-OS" },
             "group": "build",
             "problemMatcher": [],
