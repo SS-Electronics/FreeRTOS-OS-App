@@ -8,10 +8,27 @@
  *   python3 scripts/gen_board_config.py app/board/stm32f411_devboard.xml
  */
 
+#include <board/mcu_config.h>
+
+/* Variant-gated device entry point.
+ * arch/devices/device.h selects the correct vendor HAL and device_conf:
+ *   MCU_VAR_STM       → device_conf/stm32f4xx_hal_conf.h + stm32f4xx_hal.h
+ *   MCU_VAR_INFINEON  → TODO: device_conf/xmc_conf.h
+ *   MCU_VAR_MICROCHIP → TODO: device_conf/asf4_conf.h */
+#if   (CONFIG_DEVICE_VARIANT == MCU_VAR_STM)
+#  include <device.h>
+#elif (CONFIG_DEVICE_VARIANT == MCU_VAR_INFINEON)
+#  include <device.h>
+#elif (CONFIG_DEVICE_VARIANT == MCU_VAR_MICROCHIP)
+#  include <device.h>
+#else
+#  error "board_config.c: unknown CONFIG_DEVICE_VARIANT — update mcu_config.h"
+#endif
+
 #include <board/board_config.h>
 #include <board/board_device_ids.h>
-#include <board/mcu_config.h>
-#include <device.h>
+
+
 
 /* ── HAL peripheral handles ─────────────────────────────────────────────── */
 #ifdef HAL_UART_MODULE_ENABLED
