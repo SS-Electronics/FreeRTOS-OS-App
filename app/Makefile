@@ -7,6 +7,7 @@
 # Add source files here — one .o per .c
 app-obj-y += app_main.o
 app-obj-y += board/board_config.o
+app-obj-y += board/irq_hw_init_generated.o
 
 # Expose app headers to the compiler
 APP_INCLUDES += -I$(APP_DIR)

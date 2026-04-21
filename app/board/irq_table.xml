@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  irq_table.xml — Software IRQ ID to NVIC hardware mapping
+  Board: stm32f411_devboard
+
+  This is the single source of truth for:
+    1. Software IRQ ID display names  → generated into FreeRTOS-OS/irq/irq_table.c
+    2. NVIC line / priority bindings  → generated into app/board/irq_hw_init_generated.c
+
+  Regenerate after any change:
+    make irq_gen          (from the project root)
+    — or —
+    python3 scripts/gen_irq_table.py app/board/irq_table.xml
+
+  ── uart ────────────────────────────────────────────────────────────────────
+    dev_id   : 0-based index matching drv_uart dev_id
+    label    : name prefix used in irq_table.c  (e.g. "UART_DEBUG")
+    irqn     : NVIC IRQn symbol for this USART peripheral
+    priority : NVIC preempt priority  (lower number = higher priority)
+
+  ── i2c ─────────────────────────────────────────────────────────────────────
+    irqn_ev / priority_ev : event IRQ (TX-done, RX-done)
+    irqn_er / priority_er : error IRQ
+
+  ── spi ─────────────────────────────────────────────────────────────────────
+    irqn     : NVIC IRQn symbol  (all SPI software events share one line)
+    priority : NVIC preempt priority
+
+  ── sys ─────────────────────────────────────────────────────────────────────
+    name     : label used in generated comments
+    irqn     : NVIC symbol
+    priority : NVIC preempt priority
+    action   : set_priority  — HAL_NVIC_SetPriority only (core exceptions)
+               enable        — HAL_NVIC_SetPriority + HAL_NVIC_EnableIRQ
+-->
+
+<irq_table board="stm32f411_devboard">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       UART peripherals
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- UART_DEBUG → USART1  (dev_id 0) -->
+  <uart dev_id="0" label="UART_DEBUG" irqn="USART1_IRQn" priority="2"/>
+
+  <!-- UART_APP   → USART2  (dev_id 1) -->
+  <uart dev_id="1" label="UART_APP"   irqn="USART2_IRQn" priority="2"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       I2C peripherals
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- I2C_SENSOR_BUS → I2C1  (dev_id 0) -->
+  <i2c dev_id="0" label="I2C_SENSOR"
+       irqn_ev="I2C1_EV_IRQn" priority_ev="3"
+       irqn_er="I2C1_ER_IRQn" priority_er="3"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SPI peripherals
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- SPI_FLASH_BUS → SPI1  (dev_id 0) -->
+  <spi dev_id="0" label="SPI_FLASH" irqn="SPI1_IRQn" priority="3"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       GPIO EXTI lines — one entry per active interrupt pin
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!--
+    exti entries:
+      line     : EXTI line number 0–15 (matches GPIO pin number)
+      label    : display name used in irq_table.c
+      irqn     : NVIC IRQn for this line (EXTI0-4 are individual; 5-9 share EXTI9_5_IRQn)
+      priority : NVIC preempt priority
+  -->
+
+  <!-- BTN_USER → PA0 → EXTI line 0 -->
+  <exti line="0" label="BTN_USER" irqn="EXTI0_IRQn" priority="6"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       System / core IRQs — pure NVIC priority assignments
+       No software IRQ ID is allocated; only HAL_NVIC_* calls are generated.
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!--
+    FreeRTOS requires:
+      SysTick  : lowest priority  (15 on 4-bit NVIC)
+      PendSV   : lowest priority  (15 on 4-bit NVIC)
+      SVCall   : one above lowest (14 on 4-bit NVIC)
+  -->
+  <sys name="SysTick"       irqn="SysTick_IRQn"         priority="15" action="set_priority"/>
+  <sys name="PendSV"        irqn="PendSV_IRQn"           priority="15" action="set_priority"/>
+  <sys name="SVCall"        irqn="SVCall_IRQn"            priority="14" action="set_priority"/>
+
+  <!-- TIM1/TIM10 update — FreeRTOS timebase (must fire; high priority) -->
+  <sys name="TIM1_UP_TIM10" irqn="TIM1_UP_TIM10_IRQn"   priority="1"  action="enable"/>
+
+</irq_table>

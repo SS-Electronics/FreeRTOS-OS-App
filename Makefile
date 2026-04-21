@@ -26,7 +26,7 @@ APP_SRC := app
 # automatically by make via MAKEFLAGS — no explicit pass-through needed.
 
 .PHONY: all kernel app flash-kernel flash-app clean
-.PHONY: menuconfig config-outputs board-gen
+.PHONY: menuconfig config-outputs board-gen irq_gen
 
 all: app
 
@@ -54,6 +54,13 @@ config-outputs:
 
 board-gen:
 	$(MAKE) -C $(OS_DIR) board-gen
+
+# ── IRQ table code generation ─────────────────────────────────────────
+# Reads app/board/irq_table.xml and writes:
+#   FreeRTOS-OS/irq/irq_table.c            — software IRQ name table
+#   app/board/irq_hw_init_generated.c/.h   — NVIC priority / binding init
+irq_gen:
+	python3 $(OS_DIR)/scripts/gen_irq_table.py $(APP_SRC)/board/irq_table.xml
 
 # ── Housekeeping ─────────────────────────────────────────────────────
 clean:
