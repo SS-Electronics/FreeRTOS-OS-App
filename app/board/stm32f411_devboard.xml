@@ -75,7 +75,9 @@
 
     <!--
       UART_APP → USART2  PA2/TX  PA3/RX
-      Application / secondary serial port.
+      OS shell CLI port (role="shell").  Input from RX ring buffer via the
+      RXNE ISR → irq_desc chain; output written to TX ring buffer and sent
+      by the TXEIE interrupt-driven drain path.
       AF7 = USART2 on STM32F411 pins PA2 / PA3.
     -->
     <uart id="UART_APP"
@@ -85,7 +87,8 @@
           word_len="8"
           stop_bits="1"
           parity="none"
-          mode="tx_rx">
+          mode="tx_rx"
+          role="shell">
       <tx   port="A" pin="2" af="7" speed="very_high" pull="none"/>
       <rx   port="A" pin="3" af="7" speed="very_high" pull="none"/>
       <irq  name="USART2_IRQn" priority="2"/>

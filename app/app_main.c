@@ -8,7 +8,7 @@
  *
  *  [Hardware interrupt fires]
  *         │
- *         ▼  CPU vector table → hal_it_stm32.c ISR
+ *         ▼  CPU vector table → irq_periph_dispatch_generated.c ISR
  *  drv_irq_dispatch_from_isr(IRQ_ID_xxx, &data, &hpt)
  *         │
  *         ▼  __do_IRQ_from_isr()
@@ -135,7 +135,7 @@ static void echo_task(void *param)
 
 /*
  * BTN_USER is wired to PA0 → EXTI line 0.
- * hal_it_stm32.c:EXTI0_IRQHandler() clears the pending bit and calls
+ * irq_periph_dispatch_generated.c:EXTI0_IRQHandler() clears the pending bit and calls
  * drv_irq_dispatch_from_isr(IRQ_ID_EXTI(0), &pin, &hpt).
  *
  * That enters the irq_desc chain:

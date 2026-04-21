@@ -1,11 +1,11 @@
 /*
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
- * Source    : app/board/stm32f411_devboard.xml
- * Date      : 2026-04-20
+ * Source    : ../app/board/stm32f411_devboard.xml
+ * Date      : 2026-04-22
  *
  * Re-generate:
- *   python3 scripts/gen_board_config.py app/board/stm32f411_devboard.xml
+ *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
  */
 
 #ifndef BOARD_STM32F411_DEVBOARD_DEVICE_IDS_H_
@@ -31,5 +31,8 @@
 #define BTN_USER                         1
 #define LED_STATUS                       2
 #define BOARD_GPIO_COUNT             3
+
+/* UART role assignments */
+#define BOARD_UART_SHELL_ID          UART_APP             /* role="shell" */
 
 #endif /* BOARD_STM32F411_DEVBOARD_DEVICE_IDS_H_ */

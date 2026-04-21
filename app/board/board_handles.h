@@ -1,11 +1,11 @@
 /*
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
- * Source    : app/board/stm32f411_devboard.xml
- * Date      : 2026-04-20
+ * Source    : ../app/board/stm32f411_devboard.xml
+ * Date      : 2026-04-22
  *
  * Re-generate:
- *   python3 scripts/gen_board_config.py app/board/stm32f411_devboard.xml
+ *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
  */
 
 #ifndef BOARD_STM32F411_DEVBOARD_HANDLES_H_

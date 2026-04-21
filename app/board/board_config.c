@@ -1,11 +1,11 @@
 /*
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
- * Source    : app/board/stm32f411_devboard.xml
- * Date      : 2026-04-20
+ * Source    : ../app/board/stm32f411_devboard.xml
+ * Date      : 2026-04-22
  *
  * Re-generate:
- *   python3 scripts/gen_board_config.py app/board/stm32f411_devboard.xml
+ *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
  */
 
 #include <board/mcu_config.h>
@@ -28,7 +28,15 @@
 #include <board/board_config.h>
 #include <board/board_device_ids.h>
 
-
+/* ── CMSIS system variables ─────────────────────────────────────────────── */
+/* Placed in .boot_data: SystemInit() and SystemCoreClockUpdate() run before
+ * .data is copied, so the initial value must survive without a copy step.   */
+#if (CONFIG_DEVICE_VARIANT == MCU_VAR_STM)
+#include <def_attributes.h>
+__SECTION_BOOT_DATA uint32_t SystemCoreClock = BOARD_SYSCLK_HZ;
+const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4};
+#endif /* CONFIG_DEVICE_VARIANT == MCU_VAR_STM */
 
 /* ── HAL peripheral handles ─────────────────────────────────────────────── */
 #ifdef HAL_UART_MODULE_ENABLED
@@ -250,15 +258,16 @@ static const board_gpio_desc_t _gpio_table[BOARD_GPIO_COUNT] = {
 
 /* ── Top-level board config ─────────────────────────────────────────────── */
 static const board_config_t g_board_config = {
-    .board_name  = "stm32f411_devboard",
-    .uart_table  = _UART_TABLE,
-    .uart_count  = BOARD_UART_COUNT,
-    .iic_table   = _IIC_TABLE,
-    .iic_count   = BOARD_IIC_COUNT,
-    .spi_table   = _SPI_TABLE,
-    .spi_count   = BOARD_SPI_COUNT,
-    .gpio_table  = _gpio_table,
-    .gpio_count  = BOARD_GPIO_COUNT,
+    .board_name    = "stm32f411_devboard",
+    .uart_table    = _UART_TABLE,
+    .uart_count    = BOARD_UART_COUNT,
+    .uart_shell_id = UART_APP,  /* role="shell" */
+    .iic_table     = _IIC_TABLE,
+    .iic_count     = BOARD_IIC_COUNT,
+    .spi_table     = _SPI_TABLE,
+    .spi_count     = BOARD_SPI_COUNT,
+    .gpio_table    = _gpio_table,
+    .gpio_count    = BOARD_GPIO_COUNT,
 };
 
 /* ── Runtime callback tables (zero-initialised = no callbacks registered) ── */
@@ -271,7 +280,8 @@ static board_gpio_cbs_t _gpio_cbs[BOARD_GPIO_COUNT];
  * Board API implementation
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-const board_config_t *board_get_config(void) { return &g_board_config; }
+const board_config_t *board_get_config(void)    { return &g_board_config; }
+uint8_t board_get_shell_uart_id(void)           { return g_board_config.uart_shell_id; }
 
 const board_uart_desc_t *board_find_uart(USART_TypeDef *instance)
 {

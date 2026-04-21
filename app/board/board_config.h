@@ -36,6 +36,42 @@ extern "C" {
 #endif
 
 /* ═══════════════════════════════════════════════════════════════════════════
+ * 0.  Clock tree configuration  (STM32F411VET6 @ 100 MHz, HSI source)
+ *
+ *     HSI (16 MHz)
+ *       └─ /PLLM (16) ──→ 1 MHz VCO input
+ *            └─ ×PLLN (200) ──→ 200 MHz VCO output
+ *                 ├─ /PLLP (2)  ──→ SYSCLK = 100 MHz
+ *                 └─ /PLLQ (4)  ──→ USB/SDIO =  50 MHz
+ *     AHB  = SYSCLK / 1 = 100 MHz
+ *     APB1 = HCLK   / 2 =  50 MHz  (F411 max)
+ *     APB2 = HCLK   / 1 = 100 MHz
+ *
+ *     hal_rcc_stm32.c reads these macros to configure the PLL.
+ *     CMSIS variables are defined in board_config.c and declared below.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* PLL multiplier / divider values */
+#define BOARD_RCC_PLLM          16U             /* HSI/PLLM = 1 MHz VCO input */
+#define BOARD_RCC_PLLN          200U            /* VCO output = 200 MHz        */
+#define BOARD_RCC_PLLP          RCC_PLLP_DIV2  /* SYSCLK  = 200 / 2 = 100 MHz */
+#define BOARD_RCC_PLLQ          4U             /* USB/SDIO = 200 / 4 =  50 MHz */
+
+/* Resulting bus frequencies (informational — drivers query HAL at runtime)   */
+#define BOARD_SYSCLK_HZ         100000000UL
+#define BOARD_APB1_HZ            50000000UL
+#define BOARD_APB2_HZ           100000000UL
+
+/* Flash wait-states for 90–100 MHz, VDD 2.7–3.6 V (STM32F411 RM §3.4)      */
+#define BOARD_FLASH_LATENCY     FLASH_LATENCY_3
+
+/* CMSIS system variable declarations — definitions in board_config.c.
+ * SystemCoreClock is placed in .boot_data so it is valid before .data copy.  */
+extern          uint32_t SystemCoreClock;
+extern const uint8_t     AHBPrescTable[16];
+extern const uint8_t     APBPrescTable[8];
+
+/* ═══════════════════════════════════════════════════════════════════════════
  * 1.  Pin descriptor
  *     Carries everything HAL_GPIO_Init() needs for one physical pin.
  *     Use alternate = 0 for non-AF (output/input) pins.
@@ -135,6 +171,7 @@ typedef struct {
 
     const board_uart_desc_t *uart_table;
     uint8_t                  uart_count;
+    uint8_t                  uart_shell_id;  /**< dev_id of the shell CLI UART */
 
     const board_iic_desc_t  *iic_table;
     uint8_t                  iic_count;
@@ -233,6 +270,12 @@ const board_spi_desc_t  *board_find_spi(SPI_TypeDef *instance);
  *         Call once per port before HAL_GPIO_Init().
  */
 void board_gpio_clk_enable(GPIO_TypeDef *port);
+
+/**
+ * @brief  Return the UART dev_id designated as the shell CLI port.
+ *         Matches UART_SHELL_HW_ID in conf_os.h.
+ */
+uint8_t board_get_shell_uart_id(void);
 
 /* ── Callback registration ─────────────────────────────────────────────── */
 

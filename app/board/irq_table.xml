@@ -4,27 +4,40 @@
   Board: stm32f411_devboard
 
   This is the single source of truth for:
-    1. Software IRQ ID display names  → generated into FreeRTOS-OS/irq/irq_table.c
-    2. NVIC line / priority bindings  → generated into app/board/irq_hw_init_generated.c
+    1. Capacity constants + ID macros  → generated into app/board/irq_hw_conf.h
+    2. Software IRQ ID display names   → generated into FreeRTOS-OS/irq/irq_table.c
+    3. NVIC line / priority bindings   → generated into app/board/irq_hw_init_generated.c
+    4. Peripheral handler declarations → generated into app/board/irq_periph_handlers_generated.h
+    5. Peripheral vector table entries → generated into app/board/irq_periph_vectors_generated.inc
 
   Regenerate after any change:
     make irq_gen          (from the project root)
     — or —
     python3 scripts/gen_irq_table.py app/board/irq_table.xml
 
+  ── config ──────────────────────────────────────────────────────────────────
+    max_uart / uart_events : UART bus slots and events per bus
+    max_i2c  / i2c_events  : I2C bus slots and events per bus
+    max_spi  / spi_events  : SPI bus slots and events per bus
+    max_exti               : GPIO EXTI lines supported (0 .. max_exti-1)
+    notify_max_subs        : subscriber table depth per software IRQ ID
+
   ── uart ────────────────────────────────────────────────────────────────────
     dev_id   : 0-based index matching drv_uart dev_id
     label    : name prefix used in irq_table.c  (e.g. "UART_DEBUG")
     irqn     : NVIC IRQn symbol for this USART peripheral
     priority : NVIC preempt priority  (lower number = higher priority)
+    hal_inst : HAL peripheral pointer name (e.g. "USART1") — drives dispatch generation
 
   ── i2c ─────────────────────────────────────────────────────────────────────
     irqn_ev / priority_ev : event IRQ (TX-done, RX-done)
     irqn_er / priority_er : error IRQ
+    hal_inst : HAL peripheral pointer name (e.g. "I2C1") — drives dispatch generation
 
   ── spi ─────────────────────────────────────────────────────────────────────
     irqn     : NVIC IRQn symbol  (all SPI software events share one line)
     priority : NVIC preempt priority
+    hal_inst : HAL peripheral pointer name (e.g. "SPI1") — drives dispatch generation
 
   ── sys ─────────────────────────────────────────────────────────────────────
     name     : label used in generated comments
@@ -32,19 +45,35 @@
     priority : NVIC preempt priority
     action   : set_priority  — HAL_NVIC_SetPriority only (core exceptions)
                enable        — HAL_NVIC_SetPriority + HAL_NVIC_EnableIRQ
+
+  ── vector_table ─────────────────────────────────────────────────────────────
+    entry/@irqn    : peripheral IRQn position (0 = first peripheral IRQ after SysTick)
+    entry/@handler : C function name declared as weak alias to Default_Handler
+    entry/@comment : description used in generated comments
+    Gaps between defined irqn values are emitted as 0 (Reserved).
 -->
 
 <irq_table board="stm32f411_devboard">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       Software IRQ capacity — drives irq_hw_conf.h generation
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <config max_uart="4"  uart_events="3"
+          max_i2c="4"   i2c_events="3"
+          max_spi="4"   spi_events="4"
+          max_exti="16"
+          notify_max_subs="4"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        UART peripherals
        ═══════════════════════════════════════════════════════════════════════ -->
 
   <!-- UART_DEBUG → USART1  (dev_id 0) -->
-  <uart dev_id="0" label="UART_DEBUG" irqn="USART1_IRQn" priority="2"/>
+  <uart dev_id="0" label="UART_DEBUG" irqn="USART1_IRQn" priority="2" hal_inst="USART1"/>
 
   <!-- UART_APP   → USART2  (dev_id 1) -->
-  <uart dev_id="1" label="UART_APP"   irqn="USART2_IRQn" priority="2"/>
+  <uart dev_id="1" label="UART_APP"   irqn="USART2_IRQn" priority="2" hal_inst="USART2"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        I2C peripherals
@@ -53,14 +82,15 @@
   <!-- I2C_SENSOR_BUS → I2C1  (dev_id 0) -->
   <i2c dev_id="0" label="I2C_SENSOR"
        irqn_ev="I2C1_EV_IRQn" priority_ev="3"
-       irqn_er="I2C1_ER_IRQn" priority_er="3"/>
+       irqn_er="I2C1_ER_IRQn" priority_er="3"
+       hal_inst="I2C1"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        SPI peripherals
        ═══════════════════════════════════════════════════════════════════════ -->
 
   <!-- SPI_FLASH_BUS → SPI1  (dev_id 0) -->
-  <spi dev_id="0" label="SPI_FLASH" irqn="SPI1_IRQn" priority="3"/>
+  <spi dev_id="0" label="SPI_FLASH" irqn="SPI1_IRQn" priority="3" hal_inst="SPI1"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        GPIO EXTI lines — one entry per active interrupt pin
@@ -93,6 +123,82 @@
   <sys name="SVCall"        irqn="SVCall_IRQn"            priority="14" action="set_priority"/>
 
   <!-- TIM1/TIM10 update — FreeRTOS timebase (must fire; high priority) -->
-  <sys name="TIM1_UP_TIM10" irqn="TIM1_UP_TIM10_IRQn"   priority="1"  action="enable"/>
+  <sys name="TIM1_UP_TIM10" irqn="TIM1_UP_TIM10_IRQn"   priority="1"  action="enable"
+       dispatch="hal_timebase_stm32_irq_handler()"
+       dispatch_include="&lt;drivers/hal/stm32/hal_timebase_stm32.h&gt;"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STM32F411 peripheral vector table
+       irqn = position relative to first peripheral IRQ (IRQ0 = WWDG)
+       Gaps between defined positions are emitted as 0 (Reserved).
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <vector_table device="STM32F411">
+    <entry irqn="0"  handler="WWDG_IRQHandler"                comment="Window Watchdog"/>
+    <entry irqn="1"  handler="PVD_IRQHandler"                 comment="PVD through EXTI line"/>
+    <entry irqn="2"  handler="TAMP_STAMP_IRQHandler"          comment="Tamper and TimeStamp"/>
+    <entry irqn="3"  handler="RTC_WKUP_IRQHandler"            comment="RTC Wakeup"/>
+    <entry irqn="4"  handler="FLASH_IRQHandler"               comment="Flash global"/>
+    <entry irqn="5"  handler="RCC_IRQHandler"                 comment="RCC global"/>
+    <entry irqn="6"  handler="EXTI0_IRQHandler"               comment="EXTI Line 0"/>
+    <entry irqn="7"  handler="EXTI1_IRQHandler"               comment="EXTI Line 1"/>
+    <entry irqn="8"  handler="EXTI2_IRQHandler"               comment="EXTI Line 2"/>
+    <entry irqn="9"  handler="EXTI3_IRQHandler"               comment="EXTI Line 3"/>
+    <entry irqn="10" handler="EXTI4_IRQHandler"               comment="EXTI Line 4"/>
+    <entry irqn="11" handler="DMA1_Stream0_IRQHandler"        comment="DMA1 Stream 0"/>
+    <entry irqn="12" handler="DMA1_Stream1_IRQHandler"        comment="DMA1 Stream 1"/>
+    <entry irqn="13" handler="DMA1_Stream2_IRQHandler"        comment="DMA1 Stream 2"/>
+    <entry irqn="14" handler="DMA1_Stream3_IRQHandler"        comment="DMA1 Stream 3"/>
+    <entry irqn="15" handler="DMA1_Stream4_IRQHandler"        comment="DMA1 Stream 4"/>
+    <entry irqn="16" handler="DMA1_Stream5_IRQHandler"        comment="DMA1 Stream 5"/>
+    <entry irqn="17" handler="DMA1_Stream6_IRQHandler"        comment="DMA1 Stream 6"/>
+    <entry irqn="18" handler="ADC_IRQHandler"                 comment="ADC1 ADC2 ADC3"/>
+    <!-- 19-22 Reserved: CAN1/CAN2 not present on STM32F411 -->
+    <entry irqn="23" handler="EXTI9_5_IRQHandler"             comment="EXTI Lines 5-9"/>
+    <entry irqn="24" handler="TIM1_BRK_TIM9_IRQHandler"       comment="TIM1 Break and TIM9"/>
+    <entry irqn="25" handler="TIM1_UP_TIM10_IRQHandler"       comment="TIM1 Update and TIM10"/>
+    <entry irqn="26" handler="TIM1_TRG_COM_TIM11_IRQHandler"  comment="TIM1 Trigger/Comm and TIM11"/>
+    <entry irqn="27" handler="TIM1_CC_IRQHandler"             comment="TIM1 Capture Compare"/>
+    <entry irqn="28" handler="TIM2_IRQHandler"                comment="TIM2"/>
+    <entry irqn="29" handler="TIM3_IRQHandler"                comment="TIM3"/>
+    <entry irqn="30" handler="TIM4_IRQHandler"                comment="TIM4"/>
+    <entry irqn="31" handler="I2C1_EV_IRQHandler"             comment="I2C1 Event"/>
+    <entry irqn="32" handler="I2C1_ER_IRQHandler"             comment="I2C1 Error"/>
+    <entry irqn="33" handler="I2C2_EV_IRQHandler"             comment="I2C2 Event"/>
+    <entry irqn="34" handler="I2C2_ER_IRQHandler"             comment="I2C2 Error"/>
+    <entry irqn="35" handler="SPI1_IRQHandler"                comment="SPI1"/>
+    <entry irqn="36" handler="SPI2_IRQHandler"                comment="SPI2"/>
+    <entry irqn="37" handler="USART1_IRQHandler"              comment="USART1"/>
+    <entry irqn="38" handler="USART2_IRQHandler"              comment="USART2"/>
+    <!-- 39 Reserved: USART3 not present on STM32F411 -->
+    <entry irqn="40" handler="EXTI15_10_IRQHandler"           comment="EXTI Lines 10-15"/>
+    <entry irqn="41" handler="RTC_Alarm_IRQHandler"           comment="RTC Alarm A and B"/>
+    <entry irqn="42" handler="OTG_FS_WKUP_IRQHandler"         comment="USB OTG FS Wakeup"/>
+    <!-- 43-46 Reserved -->
+    <entry irqn="47" handler="DMA1_Stream7_IRQHandler"        comment="DMA1 Stream 7"/>
+    <!-- 48 Reserved: FSMC not present on STM32F411 -->
+    <entry irqn="49" handler="SDIO_IRQHandler"                comment="SDIO"/>
+    <entry irqn="50" handler="TIM5_IRQHandler"                comment="TIM5"/>
+    <entry irqn="51" handler="SPI3_IRQHandler"                comment="SPI3"/>
+    <!-- 52-55 Reserved: UART4/5, TIM6/7 DAC not on STM32F411 -->
+    <entry irqn="56" handler="DMA2_Stream0_IRQHandler"        comment="DMA2 Stream 0"/>
+    <entry irqn="57" handler="DMA2_Stream1_IRQHandler"        comment="DMA2 Stream 1"/>
+    <entry irqn="58" handler="DMA2_Stream2_IRQHandler"        comment="DMA2 Stream 2"/>
+    <entry irqn="59" handler="DMA2_Stream3_IRQHandler"        comment="DMA2 Stream 3"/>
+    <entry irqn="60" handler="DMA2_Stream4_IRQHandler"        comment="DMA2 Stream 4"/>
+    <!-- 61-66 Reserved: ETH, OTG HS not on STM32F411 -->
+    <entry irqn="67" handler="OTG_FS_IRQHandler"              comment="USB OTG FS"/>
+    <entry irqn="68" handler="DMA2_Stream5_IRQHandler"        comment="DMA2 Stream 5"/>
+    <entry irqn="69" handler="DMA2_Stream6_IRQHandler"        comment="DMA2 Stream 6"/>
+    <entry irqn="70" handler="DMA2_Stream7_IRQHandler"        comment="DMA2 Stream 7"/>
+    <entry irqn="71" handler="USART6_IRQHandler"              comment="USART6"/>
+    <entry irqn="72" handler="I2C3_EV_IRQHandler"             comment="I2C3 Event"/>
+    <entry irqn="73" handler="I2C3_ER_IRQHandler"             comment="I2C3 Error"/>
+    <!-- 74-80 Reserved: OTG HS, DCMI, CRYP, RNG not on STM32F411 -->
+    <entry irqn="81" handler="FPU_IRQHandler"                 comment="FPU"/>
+    <!-- 82-83 Reserved -->
+    <entry irqn="84" handler="SPI4_IRQHandler"                comment="SPI4"/>
+    <entry irqn="85" handler="SPI5_IRQHandler"                comment="SPI5"/>
+  </vector_table>
 
 </irq_table>
