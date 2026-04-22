@@ -19,22 +19,22 @@ void irq_hw_init_all(void)
 
     /* ── Bind irq_chip_nvic to software IRQ IDs ──────────────────────── */
 
-    /* UART_DEBUG — USART1_IRQn, priority 2 */
+    /* UART_DEBUG — USART1_IRQn, priority 5 */
     irq_set_chip_and_handler(IRQ_ID_UART_RX(0)           , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_UART_TX_DONE(0)      , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_UART_ERROR(0)        , irq_chip_nvic_get(), handle_simple_irq);
 
-    /* UART_APP — USART2_IRQn, priority 2 */
+    /* UART_APP — USART2_IRQn, priority 5 */
     irq_set_chip_and_handler(IRQ_ID_UART_RX(1)           , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_UART_TX_DONE(1)      , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_UART_ERROR(1)        , irq_chip_nvic_get(), handle_simple_irq);
 
-    /* I2C_SENSOR — I2C1_EV_IRQn, priority 3 */
+    /* I2C_SENSOR — I2C1_EV_IRQn, priority 5 */
     irq_set_chip_and_handler(IRQ_ID_I2C_TX_DONE(0)       , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_I2C_RX_DONE(0)       , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_I2C_ERROR(0)         , irq_chip_nvic_get(), handle_simple_irq);
 
-    /* SPI_FLASH — SPI1_IRQn, priority 3 */
+    /* SPI_FLASH — SPI1_IRQn, priority 5 */
     irq_set_chip_and_handler(IRQ_ID_SPI_TX_DONE(0)       , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_SPI_RX_DONE(0)       , irq_chip_nvic_get(), handle_simple_irq);
     irq_set_chip_and_handler(IRQ_ID_SPI_TXRX_DONE(0)     , irq_chip_nvic_get(), handle_simple_irq);
@@ -48,26 +48,26 @@ void irq_hw_init_all(void)
 
     /* ── Set NVIC priorities for hardware IRQ lines ──────────────────── */
 
-    /* UART_DEBUG — USART1_IRQn */
-    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_RX(0)           , USART1_IRQn, 2U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_TX_DONE(0)      , USART1_IRQn, 2U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_ERROR(0)        , USART1_IRQn, 2U);
+    /* UART_DEBUG — USART1_IRQn, priority 5 = configLIBRARY_MAX_SYSCALL_IRQ_PRIORITY */
+    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_RX(0)           , USART1_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_TX_DONE(0)      , USART1_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_ERROR(0)        , USART1_IRQn, 5U);
 
-    /* UART_APP — USART2_IRQn */
-    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_RX(1)           , USART2_IRQn, 2U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_TX_DONE(1)      , USART2_IRQn, 2U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_ERROR(1)        , USART2_IRQn, 2U);
+    /* UART_APP — USART2_IRQn, priority 5 = configLIBRARY_MAX_SYSCALL_IRQ_PRIORITY */
+    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_RX(1)           , USART2_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_TX_DONE(1)      , USART2_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_UART_ERROR(1)        , USART2_IRQn, 5U);
 
-    /* I2C_SENSOR — I2C1_EV_IRQn */
-    irq_chip_nvic_bind_hwirq(IRQ_ID_I2C_TX_DONE(0)       , I2C1_EV_IRQn, 3U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_I2C_RX_DONE(0)       , I2C1_EV_IRQn, 3U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_I2C_ERROR(0)         , I2C1_ER_IRQn, 3U);
+    /* I2C_SENSOR — I2C1_EV_IRQn, priority 5 = configLIBRARY_MAX_SYSCALL_IRQ_PRIORITY */
+    irq_chip_nvic_bind_hwirq(IRQ_ID_I2C_TX_DONE(0)       , I2C1_EV_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_I2C_RX_DONE(0)       , I2C1_EV_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_I2C_ERROR(0)         , I2C1_ER_IRQn, 5U);
 
-    /* SPI_FLASH — SPI1_IRQn */
-    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_TX_DONE(0)       , SPI1_IRQn, 3U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_RX_DONE(0)       , SPI1_IRQn, 3U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_TXRX_DONE(0)     , SPI1_IRQn, 3U);
-    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_ERROR(0)         , SPI1_IRQn, 3U);
+    /* SPI_FLASH — SPI1_IRQn, priority 5 = configLIBRARY_MAX_SYSCALL_IRQ_PRIORITY */
+    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_TX_DONE(0)       , SPI1_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_RX_DONE(0)       , SPI1_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_TXRX_DONE(0)     , SPI1_IRQn, 5U);
+    irq_chip_nvic_bind_hwirq(IRQ_ID_SPI_ERROR(0)         , SPI1_IRQn, 5U);
 
     /* BTN_USER — EXTI0_IRQn */
     irq_chip_nvic_bind_hwirq(IRQ_ID_EXTI(0)              , EXTI0_IRQn, 6U);

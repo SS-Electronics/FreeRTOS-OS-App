@@ -70,19 +70,21 @@
        ═══════════════════════════════════════════════════════════════════════ -->
 
   <!-- UART_DEBUG → USART1  (dev_id 0) -->
-  <uart dev_id="0" label="UART_DEBUG" irqn="USART1_IRQn" priority="2" hal_inst="USART1"/>
+  <!-- priority 5 = configLIBRARY_MAX_SYSCALL_IRQ_PRIORITY (minimum for FreeRTOS API calls from ISR) -->
+  <uart dev_id="0" label="UART_DEBUG" irqn="USART1_IRQn" priority="5" hal_inst="USART1"/>
 
   <!-- UART_APP   → USART2  (dev_id 1) -->
-  <uart dev_id="1" label="UART_APP"   irqn="USART2_IRQn" priority="2" hal_inst="USART2"/>
+  <uart dev_id="1" label="UART_APP"   irqn="USART2_IRQn" priority="5" hal_inst="USART2"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        I2C peripherals
        ═══════════════════════════════════════════════════════════════════════ -->
 
   <!-- I2C_SENSOR_BUS → I2C1  (dev_id 0) -->
+  <!-- priority 5 = configLIBRARY_MAX_SYSCALL_IRQ_PRIORITY -->
   <i2c dev_id="0" label="I2C_SENSOR"
-       irqn_ev="I2C1_EV_IRQn" priority_ev="3"
-       irqn_er="I2C1_ER_IRQn" priority_er="3"
+       irqn_ev="I2C1_EV_IRQn" priority_ev="5"
+       irqn_er="I2C1_ER_IRQn" priority_er="5"
        hal_inst="I2C1"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
@@ -90,7 +92,8 @@
        ═══════════════════════════════════════════════════════════════════════ -->
 
   <!-- SPI_FLASH_BUS → SPI1  (dev_id 0) -->
-  <spi dev_id="0" label="SPI_FLASH" irqn="SPI1_IRQn" priority="3" hal_inst="SPI1"/>
+  <!-- priority 5 = configLIBRARY_MAX_SYSCALL_IRQ_PRIORITY -->
+  <spi dev_id="0" label="SPI_FLASH" irqn="SPI1_IRQn" priority="5" hal_inst="SPI1"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        GPIO EXTI lines — one entry per active interrupt pin

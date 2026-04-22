@@ -23,7 +23,7 @@
  * Tasks
  * ─────
  *   heartbeat_task — toggles LED_BOARD every 500 ms
- *   hello_task     — sends a banner over UART_DEBUG every 2 s
+ *   hello_task     — sends a banner over UART_APP every 2 s
  *   echo_task      — event-driven UART echo via IRQ_ID_UART_RX
  *   btn_task       — toggles LED_STATUS on each BTN_USER press via IRQ_ID_EXTI(0)
  */
@@ -46,10 +46,10 @@
 #define APP_HELLO_INTERVAL    2000  /* ms */
 
 #define APP_ECHO_STACK        512
-#define APP_ECHO_PRIO         2
+#define APP_ECHO_PRIO         1
 
 #define APP_BTN_STACK         256
-#define APP_BTN_PRIO          3     /* higher than echo — button is latency-sensitive */
+#define APP_BTN_PRIO          1     /* higher than echo — button is latency-sensitive */
 
 /* BTN_USER is wired to PA0 → EXTI line 0 (see app/board/stm32f411_devboard.xml) */
 #define BTN_USER_PIN          0
@@ -74,7 +74,7 @@ static void hello_task(void *param)
     static const uint8_t msg[] = "[APP] Hello from FreeRTOS-OS!\r\n";
     while (1)
     {
-        uart_mgmt_async_transmit(UART_DEBUG, msg, sizeof(msg) - 1U);
+        uart_mgmt_async_transmit(UART_APP, msg, sizeof(msg) - 1U);
         os_thread_delay(APP_HELLO_INTERVAL);
     }
 }
@@ -84,10 +84,10 @@ static void hello_task(void *param)
 static TaskHandle_t _echo_task_handle = NULL;
 
 /*
- * _echo_uart_rx_cb — irq_notify_cb_t subscriber for IRQ_ID_UART_RX(UART_DEBUG).
+ * _echo_uart_rx_cb — irq_notify_cb_t subscriber for IRQ_ID_UART_RX(UART_APP).
  *
  * Registered via irq_register() which wraps it in an irqaction trampoline and
- * chains it into the irq_desc for IRQ_ID_UART_RX(UART_DEBUG).
+ * chains it into the irq_desc for IRQ_ID_UART_RX(UART_APP).
  * Called from handle_irq_event() inside the irq_desc dispatch chain, ISR context.
  */
 static void _echo_uart_rx_cb(irq_id_t    id,
@@ -109,10 +109,10 @@ static void echo_task(void *param)
 
     /*
      * irq_register() → allocates a trampoline → request_irq() → appends
-     * an irqaction to IRQ_ID_UART_RX(UART_DEBUG)'s descriptor chain.
+     * an irqaction to IRQ_ID_UART_RX(UART_APP)'s descriptor chain.
      * Multiple subscribers allowed (up to IRQ_NOTIFY_MAX_SUBS).
      */
-    irq_register(IRQ_ID_UART_RX(UART_DEBUG), _echo_uart_rx_cb, NULL);
+    irq_register(IRQ_ID_UART_RX(UART_APP), _echo_uart_rx_cb, NULL);
 
     static uint8_t tx_pool[256];
     uint8_t        pool_idx = 0;
@@ -122,10 +122,10 @@ static void echo_task(void *param)
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         uint8_t rx_byte;
-        while (uart_mgmt_read_byte(UART_DEBUG, &rx_byte) == OS_ERR_NONE)
+        while (uart_mgmt_read_byte(UART_APP, &rx_byte) == OS_ERR_NONE)
         {
             tx_pool[pool_idx] = rx_byte;
-            uart_mgmt_async_transmit(UART_DEBUG, &tx_pool[pool_idx], 1U);
+            uart_mgmt_async_transmit(UART_APP, &tx_pool[pool_idx], 1U);
             pool_idx = (uint8_t)(pool_idx + 1U);
         }
     }
@@ -186,7 +186,7 @@ static void btn_task(void *param)
 
         /* Toggle the status LED and log */
         gpio_mgmt_post(LED_STATUS, GPIO_MGMT_CMD_TOGGLE, 0, 0);
-        uart_mgmt_async_transmit(UART_DEBUG, btn_msg, sizeof(btn_msg) - 1U);
+        uart_mgmt_async_transmit(UART_APP, btn_msg, sizeof(btn_msg) - 1U);
     }
 }
 
