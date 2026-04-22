@@ -112,6 +112,35 @@
        No software IRQ ID is allocated; only HAL_NVIC_* calls are generated.
        ═══════════════════════════════════════════════════════════════════════ -->
 
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       RCC peripheral clock enables
+       Emitted at the top of irq_hw_init_all() before irq_desc_init_all().
+
+       sys_clk : system bus clocks — no HAL module guard
+         inst  : e.g. SYSCFG, PWR  →  __HAL_RCC_<inst>_CLK_ENABLE()
+
+       gpio_clk : GPIO port clocks — no HAL module guard
+         port  : port letter (A-E)  →  __HAL_RCC_GPIO<port>_CLK_ENABLE()
+
+       Peripheral (UART / I2C / SPI) clocks are derived automatically from the
+       hal_inst attribute already present on each uart / i2c / spi element above.
+       ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- System bus clocks (formerly in HAL_MspInit) -->
+  <sys_clk inst="SYSCFG"/>
+  <sys_clk inst="PWR"/>
+
+  <!-- GPIO port clocks required by alternate-function peripheral pins -->
+  <!-- Port A: UART_DEBUG TX/RX (PA9/PA10), UART_APP TX/RX (PA2/PA3), SPI SCK/MISO/MOSI (PA5-7) -->
+  <gpio_clk port="A"/>
+  <!-- Port B: I2C_SENSOR SCL/SDA (PB6/PB7) -->
+  <gpio_clk port="B"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       System / core IRQs — pure NVIC priority assignments
+       No software IRQ ID is allocated; only HAL_NVIC_* calls are generated.
+       ═══════════════════════════════════════════════════════════════════════ -->
+
   <!--
     FreeRTOS requires:
       SysTick  : lowest priority  (15 on 4-bit NVIC)

@@ -109,7 +109,6 @@ typedef struct {
     board_pin_t    rx_pin;
     IRQn_Type      irqn;              /**< USARTx_IRQn                        */
     uint32_t       irq_priority;
-    void         (*periph_clk_enable)(void); /**< __HAL_RCC_USARTx_CLK_ENABLE */
 } board_uart_desc_t;
 
 /* ── I2C ───────────────────────────────────────────────────────────────── */
@@ -124,7 +123,6 @@ typedef struct {
     IRQn_Type    ev_irqn;             /**< I2Cx_EV_IRQn                       */
     IRQn_Type    er_irqn;             /**< I2Cx_ER_IRQn                       */
     uint32_t     irq_priority;
-    void       (*periph_clk_enable)(void);
 } board_iic_desc_t;
 
 /* ── SPI ───────────────────────────────────────────────────────────────── */
@@ -145,7 +143,6 @@ typedef struct {
     board_pin_t  nss_pin;             /**< Set .pin = 0 for software NSS      */
     IRQn_Type    irqn;
     uint32_t     irq_priority;
-    void       (*periph_clk_enable)(void);
 } board_spi_desc_t;
 
 /* ── General-purpose GPIO line ─────────────────────────────────────────── */
@@ -185,60 +182,7 @@ typedef struct {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
- * 4.  Runtime callback types
- *
- *     Application code registers callbacks via board_uart_register_rx_cb()
- *     etc.  The generated board_config.c holds the mutable callback tables.
- *     These types must match what the code generator produces.
- * ═══════════════════════════════════════════════════════════════════════════ */
-
-/** Called from ISR/DMA when a byte is received on a UART. */
-typedef void (*board_uart_rx_cb_t)(uint8_t dev_id, uint8_t byte);
-
-/** Called when a UART transmit operation completes. */
-typedef void (*board_uart_tx_done_cb_t)(uint8_t dev_id);
-
-/** Called when a UART error is detected. */
-typedef void (*board_uart_error_cb_t)(uint8_t dev_id, uint32_t error);
-
-typedef struct {
-    board_uart_rx_cb_t      on_rx_byte;
-    board_uart_tx_done_cb_t on_tx_done;
-    board_uart_error_cb_t   on_error;
-} board_uart_cbs_t;
-
-/** Called when an I2C master transfer (TX or RX) completes. */
-typedef void (*board_iic_done_cb_t)(uint8_t dev_id);
-
-/** Called on I2C error. */
-typedef void (*board_iic_error_cb_t)(uint8_t dev_id, uint32_t error);
-
-typedef struct {
-    board_iic_done_cb_t  on_done;
-    board_iic_error_cb_t on_error;
-} board_iic_cbs_t;
-
-/** Called when an SPI transfer completes. */
-typedef void (*board_spi_done_cb_t)(uint8_t dev_id);
-
-/** Called on SPI error. */
-typedef void (*board_spi_error_cb_t)(uint8_t dev_id, uint32_t error);
-
-typedef struct {
-    board_spi_done_cb_t  on_done;
-    board_spi_error_cb_t on_error;
-} board_spi_cbs_t;
-
-/** Called on GPIO interrupt (rising/falling/both edge). */
-typedef void (*board_gpio_irq_cb_t)(uint8_t dev_id);
-
-typedef struct {
-    board_gpio_irq_cb_t on_irq;
-} board_gpio_cbs_t;
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
- * 5.  Board API
+ * 4.  Board API
  *     Implemented in boards/<board>/board_config.c.
  *     Linked as a single translation unit selected by CONFIG_BOARD.
  * ═══════════════════════════════════════════════════════════════════════════ */
@@ -266,37 +210,17 @@ const board_iic_desc_t  *board_find_iic(I2C_TypeDef *instance);
 const board_spi_desc_t  *board_find_spi(SPI_TypeDef *instance);
 
 /**
- * @brief  Enable the RCC peripheral clock for the GPIO port @p port.
- *         Call once per port before HAL_GPIO_Init().
+ * @brief  Enable all RCC clocks required by this board: system bus clocks
+ *         (SYSCFG, PWR), peripheral clocks (USARTx, I2Cx, SPIx), and GPIO
+ *         port clocks.  Call once at boot before any HAL_xxx_Init().
  */
-void board_gpio_clk_enable(GPIO_TypeDef *port);
+void board_clk_enable(void);
 
 /**
  * @brief  Return the UART dev_id designated as the shell CLI port.
  *         Matches UART_SHELL_HW_ID in conf_os.h.
  */
 uint8_t board_get_shell_uart_id(void);
-
-/* ── Callback registration ─────────────────────────────────────────────── */
-
-/* UART */
-void board_uart_register_rx_cb(uint8_t dev_id, board_uart_rx_cb_t cb);
-void board_uart_register_tx_done_cb(uint8_t dev_id, board_uart_tx_done_cb_t cb);
-void board_uart_register_error_cb(uint8_t dev_id, board_uart_error_cb_t cb);
-const board_uart_cbs_t *board_get_uart_cbs(uint8_t dev_id);
-
-/* I2C */
-void board_iic_register_done_cb(uint8_t dev_id, board_iic_done_cb_t cb);
-void board_iic_register_error_cb(uint8_t dev_id, board_iic_error_cb_t cb);
-const board_iic_cbs_t *board_get_iic_cbs(uint8_t dev_id);
-
-/* SPI */
-void board_spi_register_done_cb(uint8_t dev_id, board_spi_done_cb_t cb);
-const board_spi_cbs_t *board_get_spi_cbs(uint8_t dev_id);
-
-/* GPIO */
-void board_gpio_register_irq_cb(uint8_t dev_id, board_gpio_irq_cb_t cb);
-const board_gpio_cbs_t *board_get_gpio_cbs(uint8_t dev_id);
 
 #ifdef __cplusplus
 }
