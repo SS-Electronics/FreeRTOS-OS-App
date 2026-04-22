@@ -12,4 +12,3 @@ app-obj-y += board/irq_periph_dispatch_generated.o
 
 # Expose app headers to the compiler
 APP_INCLUDES += -I$(APP_DIR)
-APP_INCLUDES += -I$(APP_DIR)/os_conf_include

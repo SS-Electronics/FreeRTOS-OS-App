@@ -36,10 +36,13 @@
                 "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/STM32F4xx/STM32F411",
                 "${workspaceFolder}/FreeRTOS-OS/arch/devices/STM/stm32f4xx-hal-driver/Inc",
                 "${workspaceFolder}/FreeRTOS-OS/arch/devices/device_conf",
-                // FreeRTOS kernel
+                // FreeRTOS kernel + CLI
                 "${workspaceFolder}/FreeRTOS-OS/kernel",
                 "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/include",
                 "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Plus-CLI",
+                // Shell commands
+                "${workspaceFolder}/FreeRTOS-OS/include/shell",
                 // Library
                 "${workspaceFolder}/FreeRTOS-OS/lib",
                 // Application
@@ -108,6 +111,8 @@
                 "${workspaceFolder}/FreeRTOS-OS/kernel",
                 "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/include",
                 "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Kernel/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/FreeRTOS-OS/kernel/FreeRTOS-Plus-CLI",
+                "${workspaceFolder}/FreeRTOS-OS/include/shell",
                 "${workspaceFolder}/FreeRTOS-OS/lib",
                 "${workspaceFolder}/app",
                 "${workspaceFolder}/app/board",
