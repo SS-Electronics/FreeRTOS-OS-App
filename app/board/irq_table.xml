@@ -154,8 +154,13 @@
   <sys name="PendSV"        irqn="PendSV_IRQn"           priority="15" action="set_priority"/>
   <sys name="SVCall"        irqn="SVCall_IRQn"            priority="14" action="set_priority"/>
 
-  <!-- TIM1/TIM10 update — FreeRTOS timebase (must fire; high priority) -->
+  <!-- TIM1/TIM10 update — FreeRTOS timebase (must fire; high priority)
+       irq_id="TIM_TICK" allocates a software IRQ ID so subscribers can
+       call request_irq(IRQ_ID_TIM_TICK, ...) to receive periodic tick events.
+       flow="edge" because the flag is cleared manually in the ISR before
+       the irq_desc chain runs (no hardware ack needed). -->
   <sys name="TIM1_UP_TIM10" irqn="TIM1_UP_TIM10_IRQn"   priority="1"  action="enable"
+       irq_id="TIM_TICK"    flow="edge"
        dispatch="hal_timebase_stm32_irq_handler()"
        dispatch_include="&lt;drivers/hal/stm32/hal_timebase_stm32.h&gt;"/>
 
