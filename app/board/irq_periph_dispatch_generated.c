@@ -11,9 +11,9 @@
 
 #include <device.h>
 #include <drivers/drv_irq.h>
-#include <drivers/com/hal/stm32/hal_iic_stm32.h>
-#include <drivers/com/hal/stm32/hal_spi_stm32.h>
-#include <drivers/com/hal/stm32/hal_uart_stm32.h>
+#include <drivers/hal/stm32/hal_iic_stm32.h>
+#include <drivers/hal/stm32/hal_spi_stm32.h>
+#include <drivers/hal/stm32/hal_uart_stm32.h>
 #include <drivers/hal/stm32/hal_timebase_stm32.h>
 
 #define _EXTI_DISPATCH(pin_mask, exti_line_idx)          \
