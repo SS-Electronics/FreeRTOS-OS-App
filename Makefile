@@ -53,7 +53,7 @@ config-outputs:
 	$(MAKE) -C $(OS_DIR) config-outputs
 
 board-gen:
-	$(MAKE) -C $(OS_DIR) board-gen
+	$(MAKE) -C $(OS_DIR) board-gen APP_DIR=../$(APP_SRC)
 
 # ── IRQ table code generation ─────────────────────────────────────────
 # Reads app/board/irq_table.xml and writes:
