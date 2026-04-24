@@ -107,11 +107,12 @@ static void btn_task(void *param)
 
     while (1)
     {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        count++;
-        gpio_mgmt_post(LED_STATUS, GPIO_MGMT_CMD_TOGGLE, 0, 0);
-        printk("[BTN] Button pressed — count %lu\n", (unsigned long)count);
+        // count++;
+        // gpio_mgmt_post(LED_STATUS, GPIO_MGMT_CMD_TOGGLE, 0, 0);
+        printk("[BTN] Button pressed — count %lu\n\r", (unsigned long)count);
+        os_thread_delay(1000);
     }
 }
 
@@ -125,10 +126,6 @@ int app_main(void)
     os_thread_create(btn_task, "btn",
                      APP_BTN_STACK, APP_BTN_PRIO, NULL);
 
-    /* Start interactive shell on UART_APP (USART2, PA2/PA3, /dev/ttyUSB0).
-     * The shell task delays TIME_OFFSET_OS_SHELL_MGMT ms internally so it
-     * waits for uart_mgmt to complete UART initialisation first. */
-    os_shell_mgmt_start();
 
     return 0;
 }
