@@ -2,35 +2,17 @@
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
  * Source    : ../app/board/stm32f411_devboard.xml
- * Date      : 2026-04-22
+ * Date      : 2026-04-26
  *
  * Re-generate:
  *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
  */
 
-#include <board/mcu_config.h>
-
-/* Variant-gated device entry point.
- * arch/devices/device.h selects the correct vendor HAL and device_conf:
- *   MCU_VAR_STM       → device_conf/stm32f4xx_hal_conf.h + stm32f4xx_hal.h
- *   MCU_VAR_INFINEON  → TODO: device_conf/xmc_conf.h
- *   MCU_VAR_MICROCHIP → TODO: device_conf/asf4_conf.h */
-#if   (CONFIG_DEVICE_VARIANT == MCU_VAR_STM)
-#  include <device.h>
-#elif (CONFIG_DEVICE_VARIANT == MCU_VAR_INFINEON)
-#  include <device.h>
-#elif (CONFIG_DEVICE_VARIANT == MCU_VAR_MICROCHIP)
-#  include <device.h>
-#else
-#  error "board_config.c: unknown CONFIG_DEVICE_VARIANT — update mcu_config.h"
-#endif
-
 #include <board/board_config.h>
 #include <board/board_device_ids.h>
 
 /* ── CMSIS system variables ─────────────────────────────────────────────── */
-/* Placed in .boot_data: SystemInit() and SystemCoreClockUpdate() run before
- * .data is copied, so the initial value must survive without a copy step.   */
+/* Placed in .boot_data: valid before the .data copy in Reset_Handler.      */
 #if (CONFIG_DEVICE_VARIANT == MCU_VAR_STM)
 #include <def_attributes.h>
 __SECTION_BOOT_DATA uint32_t SystemCoreClock = BOARD_SYSCLK_HZ;
@@ -79,7 +61,7 @@ static const board_uart_desc_t _uart_table[BOARD_UART_COUNT] = {
             .alternate = GPIO_AF7_USART1,
         },
         .irqn         = USART1_IRQn,
-        .irq_priority = 2,
+        .irq_priority = 5,
     },
     /* UART_APP → USART2 */
     [1] = {
@@ -107,7 +89,7 @@ static const board_uart_desc_t _uart_table[BOARD_UART_COUNT] = {
             .alternate = GPIO_AF7_USART2,
         },
         .irqn         = USART2_IRQn,
-        .irq_priority = 2,
+        .irq_priority = 5,
     },
 };
 #define _UART_TABLE  _uart_table
@@ -122,12 +104,12 @@ static const board_uart_desc_t _uart_table[BOARD_UART_COUNT] = {
 static const board_iic_desc_t _iic_table[BOARD_IIC_COUNT] = {
     /* I2C_SENSOR_BUS → I2C1 */
     [0] = {
-        .dev_id            = 0,
-        .instance          = I2C1,
-        .clock_hz          = 400000,
-        .addr_mode         = I2C_ADDRESSINGMODE_7BIT,
-        .dual_addr         = I2C_DUALADDRESS_DISABLE,
-        .scl_pin           = {
+        .dev_id       = 0,
+        .instance     = I2C1,
+        .clock_hz     = 400000,
+        .addr_mode    = I2C_ADDRESSINGMODE_7BIT,
+        .dual_addr    = I2C_DUALADDRESS_DISABLE,
+        .scl_pin      = {
             .port      = GPIOB,
             .pin       = GPIO_PIN_6,
             .mode      = GPIO_MODE_AF_OD,
@@ -135,7 +117,7 @@ static const board_iic_desc_t _iic_table[BOARD_IIC_COUNT] = {
             .speed     = GPIO_SPEED_FREQ_VERY_HIGH,
             .alternate = GPIO_AF4_I2C1,
         },
-        .sda_pin           = {
+        .sda_pin      = {
             .port      = GPIOB,
             .pin       = GPIO_PIN_7,
             .mode      = GPIO_MODE_AF_OD,
@@ -145,7 +127,7 @@ static const board_iic_desc_t _iic_table[BOARD_IIC_COUNT] = {
         },
         .ev_irqn      = I2C1_EV_IRQn,
         .er_irqn      = I2C1_ER_IRQn,
-        .irq_priority = 3,
+        .irq_priority = 6,
     },
 };
 #define _IIC_TABLE  _iic_table
@@ -195,8 +177,8 @@ static const board_spi_desc_t _spi_table[BOARD_SPI_COUNT] = {
             .alternate = GPIO_AF5_SPI1,
         },
         .nss_pin        = { .pin = 0 },  /* software NSS */
-        .irqn         = SPI1_IRQn,
-        .irq_priority = 3,
+        .irqn           = SPI1_IRQn,
+        .irq_priority   = 6,
     },
 };
 #define _SPI_TABLE  _spi_table
@@ -251,7 +233,7 @@ static const board_config_t g_board_config = {
     .board_name    = "stm32f411_devboard",
     .uart_table    = _UART_TABLE,
     .uart_count    = BOARD_UART_COUNT,
-    .uart_shell_id = UART_APP,  /* role="shell" */
+    .uart_shell_id = UART_DEBUG,  /* role="shell" */
     .iic_table     = _IIC_TABLE,
     .iic_count     = BOARD_IIC_COUNT,
     .spi_table     = _SPI_TABLE,
@@ -318,5 +300,4 @@ void board_clk_enable(void)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
 }
-
 

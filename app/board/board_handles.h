@@ -2,7 +2,7 @@
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
  * Source    : ../app/board/stm32f411_devboard.xml
- * Date      : 2026-04-22
+ * Date      : 2026-04-26
  *
  * Re-generate:
  *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml

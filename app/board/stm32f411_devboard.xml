@@ -67,10 +67,11 @@
           word_len="8"
           stop_bits="1"
           parity="none"
-          mode="tx_rx">
+          mode="tx_rx"
+          role="shell">
       <tx   port="A" pin="9"  af="7" speed="very_high" pull="none"/>
       <rx   port="A" pin="10" af="7" speed="very_high" pull="none"/>
-      <irq  name="USART1_IRQn" priority="2"/>
+      <irq  name="USART1_IRQn" priority="5"/>
     </uart>
 
     <!--
@@ -87,11 +88,10 @@
           word_len="8"
           stop_bits="1"
           parity="none"
-          mode="tx_rx"
-          role="shell">
+          mode="tx_rx">
       <tx   port="A" pin="2" af="7" speed="very_high" pull="none"/>
       <rx   port="A" pin="3" af="7" speed="very_high" pull="none"/>
-      <irq  name="USART2_IRQn" priority="2"/>
+      <irq  name="USART2_IRQn" priority="5"/>
     </uart>
 
 
@@ -112,8 +112,8 @@
          dual_addr="disable">
       <scl   port="B" pin="6" af="4" speed="very_high" pull="none"/>
       <sda   port="B" pin="7" af="4" speed="very_high" pull="none"/>
-      <irq_ev name="I2C1_EV_IRQn" priority="3"/>
-      <irq_er name="I2C1_ER_IRQn" priority="3"/>
+      <irq_ev name="I2C1_EV_IRQn" priority="6"/>
+      <irq_er name="I2C1_ER_IRQn" priority="6"/>
     </i2c>
 
 
@@ -141,7 +141,7 @@
       <miso port="A" pin="6" af="5" speed="very_high" pull="none"/>
       <mosi port="A" pin="7" af="5" speed="very_high" pull="none"/>
       <!-- nss_pin omitted → software NSS -->
-      <irq  name="SPI1_IRQn" priority="3"/>
+      <irq  name="SPI1_IRQn" priority="6"/>
     </spi>
 
 
