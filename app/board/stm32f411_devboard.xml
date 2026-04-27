@@ -44,7 +44,7 @@
   initial_state: active | inactive   (state applied at board_init())
 -->
 
-<board name="stm32f411_devboard"
+<board name="STM32F411 Demo Devboard"
        vendor="STM"
        mcu="STM32F411VET6"
        description="STM32F411VET6 development board">
@@ -60,15 +60,14 @@
       Primary debug / console serial port.
       AF7 = USART1 on STM32F411 pins PA9 / PA10.
     -->
-    <uart id="UART_DEBUG"
+    <uart id="UART_APP"
           dev_id="0"
           instance="USART1"
           baudrate="115200"
           word_len="8"
           stop_bits="1"
           parity="none"
-          mode="tx_rx"
-          role="shell">
+          mode="tx_rx">
       <tx   port="A" pin="9"  af="7" speed="very_high" pull="none"/>
       <rx   port="A" pin="10" af="7" speed="very_high" pull="none"/>
       <irq  name="USART1_IRQn" priority="5"/>
@@ -81,14 +80,15 @@
       by the TXEIE interrupt-driven drain path.
       AF7 = USART2 on STM32F411 pins PA2 / PA3.
     -->
-    <uart id="UART_APP"
+    <uart id="UART_DEBUG"
           dev_id="1"
           instance="USART2"
           baudrate="115200"
           word_len="8"
           stop_bits="1"
           parity="none"
-          mode="tx_rx">
+          mode="tx_rx"
+          role="shell">
       <tx   port="A" pin="2" af="7" speed="very_high" pull="none"/>
       <rx   port="A" pin="3" af="7" speed="very_high" pull="none"/>
       <irq  name="USART2_IRQn" priority="5"/>

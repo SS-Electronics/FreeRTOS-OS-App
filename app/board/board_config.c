@@ -35,7 +35,7 @@ SPI_HandleTypeDef hspi1;
 /* ── UART table ─────────────────────────────────────────────────────────── */
 #ifdef HAL_UART_MODULE_ENABLED
 static const board_uart_desc_t _uart_table[BOARD_UART_COUNT] = {
-    /* UART_DEBUG → USART1 */
+    /* UART_APP → USART1 */
     [0] = {
         .dev_id       = 0,
         .instance     = USART1,
@@ -63,7 +63,7 @@ static const board_uart_desc_t _uart_table[BOARD_UART_COUNT] = {
         .irqn         = USART1_IRQn,
         .irq_priority = 5,
     },
-    /* UART_APP → USART2 */
+    /* UART_DEBUG → USART2 */
     [1] = {
         .dev_id       = 1,
         .instance     = USART2,
@@ -230,7 +230,7 @@ static const board_gpio_desc_t _gpio_table[BOARD_GPIO_COUNT] = {
 
 /* ── Top-level board config ─────────────────────────────────────────────── */
 static const board_config_t g_board_config = {
-    .board_name    = "stm32f411_devboard",
+    .board_name    = "STM32F411 Demo Devboard",
     .uart_table    = _UART_TABLE,
     .uart_count    = BOARD_UART_COUNT,
     .uart_shell_id = UART_DEBUG,  /* role="shell" */

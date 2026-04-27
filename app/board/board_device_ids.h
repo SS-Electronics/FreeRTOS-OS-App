@@ -8,14 +8,14 @@
  *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
  */
 
-#ifndef BOARD_STM32F411_DEVBOARD_DEVICE_IDS_H_
-#define BOARD_STM32F411_DEVBOARD_DEVICE_IDS_H_
+#ifndef BOARD_STM32F411 DEMO DEVBOARD_DEVICE_IDS_H_
+#define BOARD_STM32F411 DEMO DEVBOARD_DEVICE_IDS_H_
 
-/* Board: stm32f411_devboard  MCU: STM32F411VET6 */
+/* Board: STM32F411 Demo Devboard  MCU: STM32F411VET6 */
 
 /* UART device IDs */
-#define UART_DEBUG                       0
-#define UART_APP                         1
+#define UART_APP                         0
+#define UART_DEBUG                       1
 #define BOARD_UART_COUNT             2
 
 /* I2C device IDs */
@@ -33,7 +33,7 @@
 #define BOARD_GPIO_COUNT             3
 
 /* UART role assignments */
-#define BOARD_UART_SHELL_ID          UART_APP           /* role="shell" */
+#define BOARD_UART_SHELL_ID          UART_DEBUG           /* role="shell" */
 #define UART_SHELL_HW_ID             BOARD_UART_SHELL_ID  /* printk / shell UART */
 
-#endif /* BOARD_STM32F411_DEVBOARD_DEVICE_IDS_H_ */
+#endif /* BOARD_STM32F411 DEMO DEVBOARD_DEVICE_IDS_H_ */

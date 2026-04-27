@@ -8,10 +8,10 @@
  *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
  */
 
-#ifndef BOARD_STM32F411_DEVBOARD_HANDLES_H_
-#define BOARD_STM32F411_DEVBOARD_HANDLES_H_
+#ifndef BOARD_STM32F411 DEMO DEVBOARD_HANDLES_H_
+#define BOARD_STM32F411 DEMO DEVBOARD_HANDLES_H_
 
-/* Board: stm32f411_devboard  MCU: STM32F411VET6 */
+/* Board: STM32F411 Demo Devboard  MCU: STM32F411VET6 */
 
 #ifdef HAL_UART_MODULE_ENABLED
 #include "stm32f4xx_hal_uart.h"
@@ -29,4 +29,4 @@ extern I2C_HandleTypeDef hi2c1;
 extern SPI_HandleTypeDef hspi1;
 #endif /* HAL_SPI_MODULE_ENABLED */
 
-#endif /* BOARD_STM32F411_DEVBOARD_HANDLES_H_ */
+#endif /* BOARD_STM32F411 DEMO DEVBOARD_HANDLES_H_ */

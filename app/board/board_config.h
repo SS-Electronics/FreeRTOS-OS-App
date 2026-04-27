@@ -11,7 +11,7 @@
 #ifndef INCLUDE_BOARD_BOARD_CONFIG_H_
 #define INCLUDE_BOARD_BOARD_CONFIG_H_
 
-/* Board: stm32f411_devboard  MCU: STM32F411VET6 */
+/* Board: STM32F411 Demo Devboard  MCU: STM32F411VET6 */
 
 #include "autoconf.h"
 
