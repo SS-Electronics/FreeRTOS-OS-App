@@ -2,7 +2,7 @@
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
  * Source    : ../app/board/stm32f411_devboard.xml
- * Date      : 2026-04-26
+ * Date      : 2026-04-27
  *
  * Re-generate:
  *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
@@ -119,7 +119,7 @@ static const board_iic_desc_t _iic_table[BOARD_IIC_COUNT] = {
         },
         .sda_pin      = {
             .port      = GPIOB,
-            .pin       = GPIO_PIN_7,
+            .pin       = GPIO_PIN_9,
             .mode      = GPIO_MODE_AF_OD,
             .pull      = GPIO_NOPULL,
             .speed     = GPIO_SPEED_FREQ_VERY_HIGH,

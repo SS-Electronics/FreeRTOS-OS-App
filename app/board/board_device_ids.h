@@ -2,7 +2,7 @@
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
  * Source    : ../app/board/stm32f411_devboard.xml
- * Date      : 2026-04-26
+ * Date      : 2026-04-27
  *
  * Re-generate:
  *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
@@ -33,7 +33,7 @@
 #define BOARD_GPIO_COUNT             3
 
 /* UART role assignments */
-#define BOARD_UART_SHELL_ID          UART_DEBUG           /* role="shell" */
+#define BOARD_UART_SHELL_ID          UART_APP           /* role="shell" */
 #define UART_SHELL_HW_ID             BOARD_UART_SHELL_ID  /* printk / shell UART */
 
 #endif /* BOARD_STM32F411_DEVBOARD_DEVICE_IDS_H_ */

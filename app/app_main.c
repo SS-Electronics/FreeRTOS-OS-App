@@ -38,15 +38,20 @@
 #include <services/os_shell_management.h>
 #include <board/board_device_ids.h>
 #include <irq/irq_desc.h>
+#include <drv_ext_chips/lsm303dlhc.h>
 
 /* ── Task configuration ──────────────────────────────────────────────────── */
+
+#define APP_ACC_POLL_STACK    256
+#define APP_ACC_POLL_PRIO     1
+#define APP_ACC_POLL_PERIOD   1000   /* ms */
 
 #define APP_HEARTBEAT_STACK   256
 #define APP_HEARTBEAT_PRIO    1
 #define APP_HEARTBEAT_PERIOD  500   /* ms */
 
 #define APP_BTN_STACK         256
-#define APP_BTN_PRIO          2
+#define APP_BTN_PRIO          1
 
 /* BTN_USER is wired to PA0 → EXTI line 0 (see app/board/stm32f411_devboard.xml) */
 #define BTN_USER_PIN          0
@@ -103,20 +108,26 @@ static void uart_rx_task(void *param)
      * irq_register() chains this alongside uart_mgmt's ringbuffer callback;
      * both fire per received byte without conflict.
      */
-    irq_register(IRQ_ID_UART_RX(UART_APP), _uart_debug_rx_cb, NULL);
+    irq_register(IRQ_ID_UART_RX(UART_DEBUG), _uart_debug_rx_cb, NULL);
+
+     os_thread_delay(10900);
 
     for (;;)
     {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        while (_rx_tail != _rx_head)
+        while (true)
         {
-            uint8_t byte = _rx_buf[_rx_tail];
-            _rx_tail = (_rx_tail + 1) % APP_UART_RX_BUF_LEN;
+            // uint8_t byte = _rx_buf[_rx_tail];
+            // _rx_tail = (_rx_tail + 1) % APP_UART_RX_BUF_LEN;
 
-            printk("[UART_APP RX] 0x%02X '%c'\r\n",
-                   byte,
-                   (byte >= 0x20U && byte < 0x7FU) ? (char)byte : '.');
+            // printk("[UART_APP RX] 0x%02X '%c'\r\n",
+            //        byte,
+            //        (byte >= 0x20U && byte < 0x7FU) ? (char)byte : '.');
+
+            printk("Hello\n\r");
+
+            os_thread_delay(1000);
         }
     }
 }
@@ -126,6 +137,9 @@ static void uart_rx_task(void *param)
 static void heartbeat_task(void *param)
 {
     (void)param;
+
+     os_thread_delay(10700);
+
     while (1)
     {
         gpio_mgmt_post(LED_BOARD, GPIO_MGMT_CMD_TOGGLE, 0, 0);
@@ -169,6 +183,8 @@ static void btn_task(void *param)
     (void)param;
     _btn_task_handle = xTaskGetCurrentTaskHandle();
 
+     os_thread_delay(10500);
+
     /*
      * request_irq — Linux-style direct registration into the irq_desc chain.
      * dev_id is the task handle; _btn_irq_handler casts it back and wakes us.
@@ -188,10 +204,55 @@ static void btn_task(void *param)
     }
 }
 
+/* ── LSM303DLHC accelerometer polling task ───────────────────────────────── */
+
+static void acc_poll_task(void *param)
+{
+    (void)param;
+
+    lsm303dlhc_acc_raw_t raw;
+
+    /* Wait for iic_mgmt_thread to complete HAL initialization */
+    os_thread_delay(10000);
+
+    if (lsm303dlhc_acc_init(I2C_SENSOR_BUS) != OS_ERR_NONE)
+    {
+        printk("[LSM303] ACC init failed\r\n");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    printk("[LSM303] ACC ready\r\n");
+
+    for (;;)
+    {
+        if (lsm303dlhc_acc_read(I2C_SENSOR_BUS, &raw) == OS_ERR_NONE)
+        {
+            /* Raw values are 16-bit left-justified (12-bit HR data).
+             * Divide by 16 to get the 12-bit signed count; sensitivity
+             * for ±2 g HR is 1 mg/LSB, so counts == mg directly. */
+            int mg_x = (int)(raw.x / 16);
+            int mg_y = (int)(raw.y / 16);
+            int mg_z = (int)(raw.z / 16);
+
+            printk("[LSM303] ACC X=%d Y=%d Z=%d mg\r\n", mg_x, mg_y, mg_z);
+        }
+        else
+        {
+            printk("[LSM303] ACC read error\r\n");
+        }
+
+        os_thread_delay(APP_ACC_POLL_PERIOD);
+    }
+}
+
 /* ── Application entry point ─────────────────────────────────────────────── */
 
 int app_main(void)
 {
+    os_thread_create(acc_poll_task, "acc_poll",
+                     APP_ACC_POLL_STACK, APP_ACC_POLL_PRIO, NULL);
+
     os_thread_create(heartbeat_task, "heartbeat",
                      APP_HEARTBEAT_STACK, APP_HEARTBEAT_PRIO, NULL);
 

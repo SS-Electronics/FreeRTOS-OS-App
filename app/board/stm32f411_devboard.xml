@@ -100,9 +100,9 @@
          ═══════════════════════════════════════════════════════════ -->
 
     <!--
-      I2C_SENSOR_BUS → I2C1  PB6/SCL  PB7/SDA
-      Fast-mode 400 kHz bus for on-board sensors.
-      AF4 = I2C1 on STM32F411 pins PB6 / PB7.
+      I2C_SENSOR_BUS → I2C1  PB6/SCL  PB9/SDA
+      Fast-mode 400 kHz bus for on-board sensors (LSM303DLHC, etc.).
+      AF4 = I2C1 on STM32F411 Discovery: SCL=PB6, SDA=PB9 (UM1842 §6.11).
     -->
     <i2c id="I2C_SENSOR_BUS"
          dev_id="0"
@@ -111,7 +111,7 @@
          addr_mode="7bit"
          dual_addr="disable">
       <scl   port="B" pin="6" af="4" speed="very_high" pull="none"/>
-      <sda   port="B" pin="7" af="4" speed="very_high" pull="none"/>
+      <sda   port="B" pin="9" af="4" speed="very_high" pull="none"/>
       <irq_ev name="I2C1_EV_IRQn" priority="6"/>
       <irq_er name="I2C1_ER_IRQn" priority="6"/>
     </i2c>
