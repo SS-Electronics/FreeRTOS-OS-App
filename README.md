@@ -1,97 +1,103 @@
-# FreeRTOS-OS-App
+# App — FreeRTOS-OS Application (stm32h723)
 
-Root workspace for the **FreeRTOS-OS** embedded OS project.  
-The OS kernel lives in `FreeRTOS-OS/`; application code lives in `app/`.
-
-See [FreeRTOS-OS/README.md](FreeRTOS-OS/README.md) for full documentation, architecture overview, and API reference.
+Scaffolded from the **stm32h723** example.
+MCU: `#   CONFIG_TARGET_MCU     → "STM32H723xx"  (H7 HAL, ARM_CM7/r0p1 portable)`  |  CPU: `ARM-CM7`  |  Board config: `app/board/stm32h723_devboard.xml`
 
 ---
 
-## Quick Start
+## Quick start
 
 ```bash
-# 1. Clone with submodules
-git clone --recurse-submodules <repo-url>
-cd FreeRTOS-OS-App
+cd FreeRTOS-OS
 
-# 2. Install prerequisites (one-time)
-cd FreeRTOS-OS && make install-prerequisites && cd ..
+# Generate board BSP + activate Kconfig + compile
+make dev-stm32h723 APP_DIR=../app
 
-# 3. Configure target MCU (one-time, or when switching hardware)
-make menuconfig      # Kconfig ncurses menu
-make config-outputs  # generates FreeRTOS-OS/config/autoconf.h
-
-# 4. Generate BSP and IRQ table from board XML (one-time, or after XML changes)
-make board-gen       # generates app/board/{board_config.c, board_device_ids.h, …}
-make irq_gen         # generates irq_table.c + irq_hw_init_generated.c
-
-# 5. Build OS + application
-make app             # → build/app.elf
-
-# 6. Flash
-make flash-app
+# Flash to target
+make dev-stm32h723-flash
 ```
 
-> Steps 2–4 are one-time setup. After that, only steps 5–6 are needed for daily builds.
+> **Tip:** pass `DEBUG=0` for a release build (-Os -DNDEBUG):
+> ```bash
+> make dev-stm32h723 APP_DIR=../app DEBUG=0
+> ```
 
 ---
 
-## VS Code Workflow
-
-Open this folder (`FreeRTOS-OS-App/`) in VS Code — **not** the `FreeRTOS-OS/` subfolder.
-
-| Action | How |
-|---|---|
-| Build | `Ctrl+Shift+B` (default build task) |
-| Flash + Debug | `F5` → Auto — Build, Flash & Debug |
-| Flash only (no debug) | `F5` → Auto — Flash Only (Run) |
-| Attach to running target | `F5` → Auto — Attach |
-| Configure MCU | Terminal → Run Task → `menuconfig` |
-| Install debug tools | Terminal → Run Task → `install-debug-tools` |
-
----
-
-## Directory Layout
+## Directory layout
 
 ```
-FreeRTOS-OS-App/
-├── scripts/              Code generators (gen_irq_table.py, gen_board_config.py …)
-├── FreeRTOS-OS/          OS kernel, drivers, services, HAL
-│   ├── arch/             CPU/MCU architecture, linker scripts, OpenOCD configs
-│   ├── config/           autoconf.h, FreeRTOSConfig.h (generated + hand-written)
-│   ├── docs/             Documentation (DRIVERS.md, IRQ.md, BOARD.md …)
-│   ├── drivers/          Generic driver layer (UART, SPI, I2C, GPIO)
-│   │   └── hal/stm32/    STM32 HAL backends + NVIC irq_chip
-│   ├── init/             main() — HAL init, clock config, scheduler start
-│   ├── ipc/              Message queues, ring-buffer
-│   ├── irq/              IRQ descriptor chain (irq_desc.c, irq_notify.c, irq_table.c)
-│   ├── kernel/           Thread API, FreeRTOS-Kernel submodule
-│   ├── mm/               kmalloc/kfree, intrusive linked list
-│   └── services/         Management service threads (uart_mgmt, gpio_mgmt …)
-└── app/                  User application
-    ├── app_main.c        Tasks + UART echo + EXTI button example
-    └── board/
-        ├── stm32f411_devboard.xml       Board peripheral description
-        ├── irq_table.xml                IRQ ID → NVIC priority mapping
-        ├── irq_hw_init_generated.c/.h   Generated — irq_hw_init_all()
-        ├── board_config.c/.h            Generated — HAL handles + descriptors
-        └── board_device_ids.h           Generated — UART_DEBUG, BTN_USER, …
+.
+├── app/                               Application project (this scaffold)
+│   ├── app_main.c                     Entry point — implement your tasks here
+│   ├── Makefile                       Build fragment (app-obj-y, APP_INCLUDES)
+│   ├── kconfig.conf                   Kconfig preset
+│   ├── board/
+│   │   ├── stm32h723_devboard.xml   Board peripheral descriptor (edit this)
+│   │   ├── irq_table.xml              IRQ routing table
+│   │   ├── mcu_config.h               MCU peripheral counts / UART_x_EN flags
+│   │   └── <generated files>          board_config.{c,h}, board_device_ids.h, …
+│   └── os_conf_include/
+│       ├── conf_board.h               COMM_PRINTK_HW_ID selection
+│       └── def_compiler.h             Compiler / type includes
+└── FreeRTOS-OS/                       RTOS kernel (this repo)
 ```
 
 ---
 
-## Prerequisites
+## Build reference
 
-See [FreeRTOS-OS/README.md § Prerequisites](FreeRTOS-OS/README.md#prerequisites) for the full install guide including ST-Link udev rules and VS Code extension setup.
+| Command | Description |
+|---------|-------------|
+| `make dev-stm32h723 APP_DIR=../app` | Full build: gen → config → compile |
+| `make dev-stm32h723 APP_DIR=../app DEBUG=0` | Release build (-Os -DNDEBUG) |
+| `make dev-stm32h723-flash` | Flash via OpenOCD / ST-Link |
+| `make dev-stm32h723-gen` | Regenerate board BSP files only |
+| `make dev-stm32h723-clean` | Remove generated files + build/ |
+| `make board-gen APP_DIR=../app` | Regenerate BSP from board XML |
+
+---
+
+## Customising
+
+### Add application source files
+
+Edit `app/Makefile`:
+```makefile
+app-obj-y += my_module.o
+app-obj-y += subdir/another.o
+```
+Add the corresponding `.c` files under `app/`.
+
+### Change board peripherals
+
+1. Edit `app/board/stm32h723_devboard.xml`.
+2. Edit `app/board/irq_table.xml` if IRQ routing changes.
+3. Regenerate:
+   ```bash
+   cd FreeRTOS-OS
+   make dev-stm32h723-gen APP_DIR=../app
+   ```
+
+### Change Kconfig (HAL modules, heap size, …)
+
+1. Edit `app/kconfig.conf`.
+2. Activate:
+   ```bash
+   cd FreeRTOS-OS
+   cp ../app/kconfig.conf .config && make config-outputs
+   ```
+3. Rebuild: `make dev-stm32h723 APP_DIR=../app`
+
+---
+
+## Available examples
+
+Re-scaffold to switch target board:
 
 ```bash
-cd FreeRTOS-OS && make install-prerequisites
+cd FreeRTOS-OS
+make setup-project EXAMPLE=stm32h723   # NUCLEO-H723ZG  (Cortex-M7, 1 MB flash)
+make setup-project EXAMPLE=stm32f411   # STM32F411 devboard (Cortex-M4F, 512 KB)
+make setup-project EXAMPLE=stm32u575   # NUCLEO-U575ZI-Q (Cortex-M33 + TrustZone)
 ```
-
----
-
-## License
-
-GNU General Public License v3.0 — see `COPYING` or <https://www.gnu.org/licenses/gpl-3.0.html>.
-
-*Author: Subhajit Roy — subhajitroy005@gmail.com*

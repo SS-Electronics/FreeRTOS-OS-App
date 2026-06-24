@@ -1,11 +1,11 @@
 /*
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
- * Source    : ../app/board/stm32f411_devboard.xml
- * Date      : 2026-04-27
+ * Source    : ../app/board/stm32h723_devboard.xml
+ * Date      : 2026-06-24
  *
  * Re-generate:
- *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
+ *   python3 scripts/gen_board_config.py ../app/board/stm32h723_devboard.xml
  */
 
 #include <board/board_config.h>
@@ -15,15 +15,14 @@
 /* Placed in .boot_data: valid before the .data copy in Reset_Handler.      */
 #if (CONFIG_DEVICE_VARIANT == MCU_VAR_STM)
 #include <def_attributes.h>
-__SECTION_BOOT_DATA uint32_t SystemCoreClock = BOARD_SYSCLK_HZ;
-const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
-const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4};
+const uint8_t AHBPrescTable[8] = {0, 0, 0, 0, 0, 1, 2, 3};
+const uint8_t APBPrescTable[4] = {0, 1, 2, 3};
 #endif /* CONFIG_DEVICE_VARIANT == MCU_VAR_STM */
 
 /* ── HAL peripheral handles ─────────────────────────────────────────────── */
 #ifdef HAL_UART_MODULE_ENABLED
 UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
 #endif /* HAL_UART_MODULE_ENABLED */
 #ifdef HAL_I2C_MODULE_ENABLED
 I2C_HandleTypeDef hi2c1;
@@ -63,32 +62,32 @@ static const board_uart_desc_t _uart_table[BOARD_UART_COUNT] = {
         .irqn         = USART1_IRQn,
         .irq_priority = 5,
     },
-    /* UART_DEBUG → USART2 */
+    /* UART_DEBUG → USART3 */
     [1] = {
         .dev_id       = 1,
-        .instance     = USART2,
+        .instance     = USART3,
         .baudrate     = 115200,
         .word_len     = UART_WORDLENGTH_8B,
         .stop_bits    = UART_STOPBITS_1,
         .parity       = UART_PARITY_NONE,
         .mode         = UART_MODE_TX_RX,
         .tx_pin       = {
-            .port      = GPIOA,
-            .pin       = GPIO_PIN_2,
+            .port      = GPIOD,
+            .pin       = GPIO_PIN_8,
             .mode      = GPIO_MODE_AF_PP,
             .pull      = GPIO_NOPULL,
             .speed     = GPIO_SPEED_FREQ_VERY_HIGH,
-            .alternate = GPIO_AF7_USART2,
+            .alternate = GPIO_AF7_USART3,
         },
         .rx_pin       = {
-            .port      = GPIOA,
-            .pin       = GPIO_PIN_3,
+            .port      = GPIOD,
+            .pin       = GPIO_PIN_9,
             .mode      = GPIO_MODE_AF_PP,
             .pull      = GPIO_NOPULL,
             .speed     = GPIO_SPEED_FREQ_VERY_HIGH,
-            .alternate = GPIO_AF7_USART2,
+            .alternate = GPIO_AF7_USART3,
         },
-        .irqn         = USART2_IRQn,
+        .irqn         = USART3_IRQn,
         .irq_priority = 5,
     },
 };
@@ -111,7 +110,7 @@ static const board_iic_desc_t _iic_table[BOARD_IIC_COUNT] = {
         .dual_addr    = I2C_DUALADDRESS_DISABLE,
         .scl_pin      = {
             .port      = GPIOB,
-            .pin       = GPIO_PIN_6,
+            .pin       = GPIO_PIN_8,
             .mode      = GPIO_MODE_AF_OD,
             .pull      = GPIO_NOPULL,
             .speed     = GPIO_SPEED_FREQ_VERY_HIGH,
@@ -194,33 +193,33 @@ static const board_gpio_desc_t _gpio_table[BOARD_GPIO_COUNT] = {
     [0] = {
         .dev_id        = 0,
         .label         = "LED_BOARD",
-        .port          = GPIOC,
-        .pin           = GPIO_PIN_13,
+        .port          = GPIOB,
+        .pin           = GPIO_PIN_0,
         .mode          = GPIO_MODE_OUTPUT_PP,
         .pull          = GPIO_NOPULL,
-        .speed         = GPIO_SPEED_FREQ_LOW,
-        .active_state  = GPIO_PIN_RESET,
-        .initial_state = 0,
-    },
-    /* BTN_USER */
-    [1] = {
-        .dev_id        = 1,
-        .label         = "BTN_USER",
-        .port          = GPIOA,
-        .pin           = GPIO_PIN_0,
-        .mode          = GPIO_MODE_IT_RISING,
-        .pull          = GPIO_PULLDOWN,
         .speed         = GPIO_SPEED_FREQ_LOW,
         .active_state  = GPIO_PIN_SET,
         .initial_state = 0,
     },
-    /* LED_STATUS */
+    /* LED_YELLOW */
+    [1] = {
+        .dev_id        = 1,
+        .label         = "LED_YELLOW",
+        .port          = GPIOE,
+        .pin           = GPIO_PIN_1,
+        .mode          = GPIO_MODE_OUTPUT_PP,
+        .pull          = GPIO_NOPULL,
+        .speed         = GPIO_SPEED_FREQ_LOW,
+        .active_state  = GPIO_PIN_SET,
+        .initial_state = 0,
+    },
+    /* BTN_USER */
     [2] = {
         .dev_id        = 2,
-        .label         = "LED_STATUS",
-        .port          = GPIOB,
-        .pin           = GPIO_PIN_0,
-        .mode          = GPIO_MODE_OUTPUT_PP,
+        .label         = "BTN_USER",
+        .port          = GPIOC,
+        .pin           = GPIO_PIN_13,
+        .mode          = GPIO_MODE_IT_RISING,
         .pull          = GPIO_NOPULL,
         .speed         = GPIO_SPEED_FREQ_LOW,
         .active_state  = GPIO_PIN_SET,
@@ -230,7 +229,7 @@ static const board_gpio_desc_t _gpio_table[BOARD_GPIO_COUNT] = {
 
 /* ── Top-level board config ─────────────────────────────────────────────── */
 static const board_config_t g_board_config = {
-    .board_name    = "STM32F411 Demo Devboard",
+    .board_name    = "STM32H723 Demo Devboard",
     .uart_table    = _UART_TABLE,
     .uart_count    = BOARD_UART_COUNT,
     .uart_shell_id = UART_DEBUG,  /* role="shell" */
@@ -240,6 +239,10 @@ static const board_config_t g_board_config = {
     .spi_count     = BOARD_SPI_COUNT,
     .gpio_table    = _gpio_table,
     .gpio_count    = BOARD_GPIO_COUNT,
+#ifdef HAL_ADC_MODULE_ENABLED
+    .adc_table     = NULL,
+    .adc_count     = 0,
+#endif /* HAL_ADC_MODULE_ENABLED */
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -277,12 +280,11 @@ void board_clk_enable(void)
 {
     /* System bus clocks */
     __HAL_RCC_SYSCFG_CLK_ENABLE();
-    __HAL_RCC_PWR_CLK_ENABLE();
 
 #ifdef HAL_UART_MODULE_ENABLED
     /* UART peripheral clocks */
     __HAL_RCC_USART1_CLK_ENABLE();
-    __HAL_RCC_USART2_CLK_ENABLE();
+    __HAL_RCC_USART3_CLK_ENABLE();
 #endif /* HAL_UART_MODULE_ENABLED */
 
 #ifdef HAL_I2C_MODULE_ENABLED
@@ -299,5 +301,7 @@ void board_clk_enable(void)
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+    __HAL_RCC_GPIOE_CLK_ENABLE();
 }
 

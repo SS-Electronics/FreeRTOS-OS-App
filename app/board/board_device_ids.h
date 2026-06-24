@@ -1,17 +1,19 @@
 /*
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
- * Source    : ../app/board/stm32f411_devboard.xml
- * Date      : 2026-04-27
+ * Source    : ../app/board/stm32h723_devboard.xml
+ * Date      : 2026-06-24
  *
  * Re-generate:
- *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
+ *   python3 scripts/gen_board_config.py ../app/board/stm32h723_devboard.xml
  */
 
-#ifndef BOARD_STM32F411 DEMO DEVBOARD_DEVICE_IDS_H_
-#define BOARD_STM32F411 DEMO DEVBOARD_DEVICE_IDS_H_
+#ifndef BOARD_STM32H723_DEMO_DEVBOARD_DEVICE_IDS_H_
+#define BOARD_STM32H723_DEMO_DEVBOARD_DEVICE_IDS_H_
 
-/* Board: STM32F411 Demo Devboard  MCU: STM32F411VET6 */
+#include "autoconf.h"
+
+/* Board: STM32H723 Demo Devboard  MCU: STM32H723ZGTx */
 
 /* UART device IDs */
 #define UART_APP                         0
@@ -28,12 +30,12 @@
 
 /* GPIO device IDs */
 #define LED_BOARD                        0
-#define BTN_USER                         1
-#define LED_STATUS                       2
+#define LED_YELLOW                       1
+#define BTN_USER                         2
 #define BOARD_GPIO_COUNT             3
 
 /* UART role assignments */
 #define BOARD_UART_SHELL_ID          UART_DEBUG           /* role="shell" */
 #define UART_SHELL_HW_ID             BOARD_UART_SHELL_ID  /* printk / shell UART */
 
-#endif /* BOARD_STM32F411 DEMO DEVBOARD_DEVICE_IDS_H_ */
+#endif /* BOARD_STM32H723_DEMO_DEVBOARD_DEVICE_IDS_H_ */

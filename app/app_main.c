@@ -1,266 +1,115 @@
 /*
- * app_main.c — Application entry point for FreeRTOS-OS
+ * examples/stm32h723/app_main.c — Standalone FreeRTOS-OS example for the
+ * STM32H723 devboard.
  *
- * This file is part of FreeRTOS-OS Project.
- *
- * IRQ chain (full Linux-style irq_desc path)
- * ──────────────────────────────────────────
- *
- *  [Hardware interrupt fires]
- *         │
- *         ▼  CPU vector table → irq_periph_dispatch_generated.c ISR
- *  drv_irq_dispatch_from_isr(IRQ_ID_xxx, &data, &hpt)
- *         │
- *         ▼  __do_IRQ_from_isr()
- *  irq_to_desc(irq_id)  →  desc->handle_irq()  →  handle_irq_event()
- *         │
- *         ▼  walk irqaction chain
- *  irq_handler_t (registered via request_irq)
- *         │
- *         ▼  vTaskNotifyGiveFromISR / ringbuffer / etc.
- *  FreeRTOS task unblocks
+ * Board: NUCLEO-H723ZG (STM32H723ZGTx, Cortex-M7)
  *
  * Tasks
  * ─────
- *   heartbeat_task — toggles LED_BOARD every 500 ms
- *   btn_task       — toggles LED_STATUS on each BTN_USER press via IRQ_ID_EXTI(0)
- *                    logs to UART_DEBUG via printk
- *   uart_rx_task   — receives bytes from USART1 (UART_DEBUG) via IRQ callback
- *                    irq_register(IRQ_ID_UART_RX(UART_DEBUG)) → ISR puts byte in
- *                    private ring buffer → task wakes and processes
- *   os_shell_mgmt  — interactive CLI over UART_APP (USART2, /dev/ttyUSB0)
- *                    connect with PuTTY: 115200 8N1, no flow control
+ *   heartbeat_task  — toggles LED_BOARD every 500 ms to confirm the RTOS is running
+ *   uart_echo_task  — echoes bytes received on UART_DEBUG back to the sender
+ *   shell           — interactive CLI on UART_APP (115200 8N1)
+ *                     connect with any serial terminal
+ *
+ * Build
+ * ─────
+ *   make dev-stm32h723              full build (gen + config + clean + compile)
+ *   make dev-stm32h723-gen          regenerate board files only
+ *
+ * Flash
+ * ─────
+ *   make dev-stm32h723-flash
  */
 
 #include <os/kernel.h>
 #include <os/kernel_syscall.h>
 #include <services/gpio_mgmt.h>
-#include <services/os_shell_management.h>
 #include <board/board_device_ids.h>
 #include <irq/irq_desc.h>
-#include <drv_ext_chips/lsm303dlhc.h>
+#include <autoconf.h>
 
-/* ── Task configuration ──────────────────────────────────────────────────── */
+#if defined(CONFIG_NET)
+#include <net/net_service.h>
+#endif
 
-#define APP_ACC_POLL_STACK    256
-#define APP_ACC_POLL_PRIO     1
-#define APP_ACC_POLL_PERIOD   1000   /* ms */
+/* ── Task parameters ─────────────────────────────────────────────────────── */
 
-#define APP_HEARTBEAT_STACK   256
-#define APP_HEARTBEAT_PRIO    1
-#define APP_HEARTBEAT_PERIOD  500   /* ms */
+#define HEARTBEAT_STACK   256
+#define HEARTBEAT_PRIO    1
+#define HEARTBEAT_PERIOD  500   /* ms */
 
-#define APP_BTN_STACK         256
-#define APP_BTN_PRIO          1
+#define UART_ECHO_STACK   256
+#define UART_ECHO_PRIO    1
+#define UART_ECHO_BUF     64
 
-/* BTN_USER is wired to PA0 → EXTI line 0 (see app/board/stm32f411_devboard.xml) */
-#define BTN_USER_PIN          0
+/* ── UART_DEBUG RX echo ──────────────────────────────────────────────────── */
 
-#define APP_UART_RX_STACK     256
-#define APP_UART_RX_PRIO      1
-#define APP_UART_RX_BUF_LEN   64   /* must be power-of-2 for safe wrapping */
+static uint8_t           _rx_buf[UART_ECHO_BUF];
+static volatile uint16_t _rx_head = 0;
+static uint16_t          _rx_tail = 0;
+static TaskHandle_t      _echo_task_handle = NULL;
 
-/* ── UART_DEBUG (USART1) RX — IRQ callback + task ───────────────────────── */
-
-/*
- * Private ring buffer written by _uart_debug_rx_cb() in ISR context and
- * drained by uart_rx_task() in task context.  head is volatile so the
- * compiler does not cache it across the while(_rx_tail != _rx_head) loop.
- */
-static uint8_t           _rx_buf[APP_UART_RX_BUF_LEN];
-static volatile uint16_t _rx_head = 0;   /* ISR writes */
-static uint16_t          _rx_tail = 0;   /* task reads  */
-
-static TaskHandle_t _uart_rx_task_handle = NULL;
-
-/*
- * _uart_debug_rx_cb — irq_notify callback, runs in ISR context.
- *
- * data : pointer to the received byte (set by hal_uart_stm32.c before calling
- *        drv_irq_dispatch_from_isr(IRQ_ID_UART_RX(n), &byte, &hpt)).
- */
-static void _uart_debug_rx_cb(irq_id_t id, void *data,
-                               void *arg, BaseType_t *pxHPT)
+static void _uart_rx_cb(irq_id_t id, void *data, void *arg, BaseType_t *pxHPT)
 {
-    (void)id;
-    (void)arg;
-
-    if (data == NULL)
-        return;
-
-    uint16_t next = (_rx_head + 1) % APP_UART_RX_BUF_LEN;
-    if (next != _rx_tail) {          /* silently drop if buffer full */
+    (void)id; (void)arg;
+    if (!data) return;
+    uint16_t next = (_rx_head + 1) % UART_ECHO_BUF;
+    if (next != _rx_tail) {
         _rx_buf[_rx_head] = *(uint8_t *)data;
         _rx_head = next;
     }
-
-    if (_uart_rx_task_handle != NULL)
-        vTaskNotifyGiveFromISR(_uart_rx_task_handle, pxHPT);
+    if (_echo_task_handle)
+        vTaskNotifyGiveFromISR(_echo_task_handle, pxHPT);
 }
 
-static void uart_rx_task(void *param)
+static void uart_echo_task(void *param)
 {
     (void)param;
-    _uart_rx_task_handle = xTaskGetCurrentTaskHandle();
+    _echo_task_handle = xTaskGetCurrentTaskHandle();
+    irq_register(IRQ_ID_UART_RX(UART_DEBUG), _uart_rx_cb, NULL);
 
-    /*
-     * Subscribe to UART_APP (USART2) RX events — separate from the shell UART.
-     * irq_register() chains this alongside uart_mgmt's ringbuffer callback;
-     * both fire per received byte without conflict.
-     */
-    irq_register(IRQ_ID_UART_RX(UART_DEBUG), _uart_debug_rx_cb, NULL);
-
-     os_thread_delay(10900);
-
-    for (;;)
-    {
-        // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-        while (true)
-        {
-            // uint8_t byte = _rx_buf[_rx_tail];
-            // _rx_tail = (_rx_tail + 1) % APP_UART_RX_BUF_LEN;
-
-            // printk("[UART_APP RX] 0x%02X '%c'\r\n",
-            //        byte,
-            //        (byte >= 0x20U && byte < 0x7FU) ? (char)byte : '.');
-
-            printk("Hello\n\r");
-
-            os_thread_delay(1000);
+    for (;;) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        while (_rx_tail != _rx_head) {
+            uint8_t byte = _rx_buf[_rx_tail];
+            _rx_tail = (_rx_tail + 1) % UART_ECHO_BUF;
+            printk("%c", (char)byte);
         }
     }
 }
 
-/* ── Heartbeat task ──────────────────────────────────────────────────────── */
+/* ── Heartbeat ───────────────────────────────────────────────────────────── */
 
 static void heartbeat_task(void *param)
 {
     (void)param;
-
-     os_thread_delay(10700);
-
-    while (1)
-    {
+    uint32_t tick = 0;
+    printk("[boot] FreeRTOS-OS running\n");
+    for (;;) {
         gpio_mgmt_post(LED_BOARD, GPIO_MGMT_CMD_TOGGLE, 0, 0);
-        os_thread_delay(APP_HEARTBEAT_PERIOD);
+        printk("[heartbeat] tick %lu\n", (unsigned long)tick++);
+        os_thread_delay(HEARTBEAT_PERIOD);
     }
 }
 
-/* ── Button task — EXTI interrupt via Linux-style request_irq ────────────── */
-
-/*
- * BTN_USER is wired to PA0 → EXTI line 0.
- * irq_periph_dispatch_generated.c:EXTI0_IRQHandler() clears the pending bit and calls
- * drv_irq_dispatch_from_isr(IRQ_ID_EXTI(0), &pin, &hpt).
- *
- * That enters the irq_desc chain:
- *   __do_IRQ_from_isr → irq_to_desc(IRQ_ID_EXTI(0))
- *     → handle_simple_irq → handle_irq_event
- *       → _btn_irq_handler  (registered below via request_irq)
- *
- * Button events are logged via printk() which goes to UART_DEBUG (USART1),
- * keeping UART_APP (USART2) clean for the interactive shell.
- */
-
-static TaskHandle_t _btn_task_handle = NULL;
-
-static irqreturn_t _btn_irq_handler(irq_id_t   irq,
-                                    void       *data,
-                                    void       *dev_id,
-                                    BaseType_t *pxHPT)
-{
-    (void)irq;
-    (void)data;
-    TaskHandle_t task = (TaskHandle_t)dev_id;
-    if (task != NULL)
-        vTaskNotifyGiveFromISR(task, pxHPT);
-    return IRQ_HANDLED;
-}
-
-static void btn_task(void *param)
-{
-    (void)param;
-    _btn_task_handle = xTaskGetCurrentTaskHandle();
-
-     os_thread_delay(10500);
-
-    /*
-     * request_irq — Linux-style direct registration into the irq_desc chain.
-     * dev_id is the task handle; _btn_irq_handler casts it back and wakes us.
-     */
-    request_irq(IRQ_ID_EXTI(BTN_USER_PIN), _btn_irq_handler,
-                "btn_user", _btn_task_handle);
-
-    uint32_t count = 0;
-
-    while (1)
-    {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-        count++;
-        gpio_mgmt_post(LED_STATUS, GPIO_MGMT_CMD_TOGGLE, 0, 0);
-        printk("[BTN] Button pressed — count %lu\r\n", (unsigned long)count);
-    }
-}
-
-/* ── LSM303DLHC accelerometer polling task ───────────────────────────────── */
-
-static void acc_poll_task(void *param)
-{
-    (void)param;
-
-    lsm303dlhc_acc_raw_t raw;
-
-    /* Wait for iic_mgmt_thread to complete HAL initialization */
-    os_thread_delay(10000);
-
-    if (lsm303dlhc_acc_init(I2C_SENSOR_BUS) != OS_ERR_NONE)
-    {
-        printk("[LSM303] ACC init failed\r\n");
-        vTaskDelete(NULL);
-        return;
-    }
-
-    printk("[LSM303] ACC ready\r\n");
-
-    for (;;)
-    {
-        if (lsm303dlhc_acc_read(I2C_SENSOR_BUS, &raw) == OS_ERR_NONE)
-        {
-            /* Raw values are 16-bit left-justified (12-bit HR data).
-             * Divide by 16 to get the 12-bit signed count; sensitivity
-             * for ±2 g HR is 1 mg/LSB, so counts == mg directly. */
-            int mg_x = (int)(raw.x / 16);
-            int mg_y = (int)(raw.y / 16);
-            int mg_z = (int)(raw.z / 16);
-
-            printk("[LSM303] ACC X=%d Y=%d Z=%d mg\r\n", mg_x, mg_y, mg_z);
-        }
-        else
-        {
-            printk("[LSM303] ACC read error\r\n");
-        }
-
-        os_thread_delay(APP_ACC_POLL_PERIOD);
-    }
-}
-
-/* ── Application entry point ─────────────────────────────────────────────── */
+/* ── Entry point ─────────────────────────────────────────────────────────── */
 
 int app_main(void)
 {
-    os_thread_create(acc_poll_task, "acc_poll",
-                     APP_ACC_POLL_STACK, APP_ACC_POLL_PRIO, NULL);
-
     os_thread_create(heartbeat_task, "heartbeat",
-                     APP_HEARTBEAT_STACK, APP_HEARTBEAT_PRIO, NULL);
+                     HEARTBEAT_STACK, HEARTBEAT_PRIO, NULL);
 
-    os_thread_create(btn_task, "btn",
-                     APP_BTN_STACK, APP_BTN_PRIO, NULL);
+    os_thread_create(uart_echo_task, "uart_echo",
+                     UART_ECHO_STACK, UART_ECHO_PRIO, NULL);
 
-    os_thread_create(uart_rx_task, "uart_rx",
-                     APP_UART_RX_STACK, APP_UART_RX_PRIO, NULL);
+#if defined(CONFIG_NET)
+    /* Bring up lwIP + static-IP netif + RX poll thread. A PHY/link failure is
+     * logged inside the stack but must not abort the rest of the boot. */
+    if (net_service_start() != OS_ERR_NONE)
+    {
+        printk("[net] stack init failed (check Ethernet link)\n");
+    }
+#endif
 
     return 0;
 }

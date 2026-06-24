@@ -1,17 +1,17 @@
 /*
  * AUTO-GENERATED — DO NOT EDIT
  * Generator : scripts/gen_board_config.py
- * Source    : ../app/board/stm32f411_devboard.xml
- * Date      : 2026-04-27
+ * Source    : ../app/board/stm32h723_devboard.xml
+ * Date      : 2026-06-24
  *
  * Re-generate:
- *   python3 scripts/gen_board_config.py ../app/board/stm32f411_devboard.xml
+ *   python3 scripts/gen_board_config.py ../app/board/stm32h723_devboard.xml
  */
 
 #ifndef INCLUDE_BOARD_BOARD_CONFIG_H_
 #define INCLUDE_BOARD_BOARD_CONFIG_H_
 
-/* Board: STM32F411 Demo Devboard  MCU: STM32F411VET6 */
+/* Board: STM32H723 Demo Devboard  MCU: STM32H723ZGTx */
 
 #include "autoconf.h"
 
@@ -20,7 +20,7 @@
 #define MCU_VAR_STM         2
 #define MCU_VAR_INFINEON    3
 
-#define CONFIG_DEVICE_VARIANT    MCU_VAR_STM   /* STM32F411VET6 */
+#define CONFIG_DEVICE_VARIANT    MCU_VAR_STM   /* STM32H723ZGTx */
 
 /* ── Board device IDs — generated from XML by gen_board_config.py ─────────── */
 /* Defines BOARD_UART_COUNT, BOARD_IIC_COUNT, BOARD_SPI_COUNT, BOARD_GPIO_COUNT */
@@ -43,19 +43,20 @@ typedef enum
 {
     UART_1 = 0,  /* USART1 */
     UART_2,  /* USART2 */
-    UART_3,  /* not on F411, placeholder */
-    UART_4,  /* not on F411, placeholder */
-    UART_5,  /* not on F411, placeholder */
+    UART_3,  /* USART3 */
+    UART_4,  /* UART4 */
+    UART_5,  /* UART5 */
     UART_6,  /* USART6 */
-    UART_7,
-    UART_8
+    UART_7,  /* UART7 */
+    UART_8  /* UART8 */
 } UART_PORTS;
 
 typedef enum
 {
     IIC_1 = 0,
     IIC_2,
-    IIC_3
+    IIC_3,
+    IIC_4
 } IIC_PORTS;
 
 typedef enum
@@ -78,21 +79,21 @@ typedef enum
 extern "C" {
 #endif
 
-/* ── Clock tree  (STM32F411VET6 @ 100 MHz, HSI source) ──── */
-#define BOARD_RCC_PLLM          16U
-#define BOARD_RCC_PLLN          200U
-#define BOARD_RCC_PLLP          RCC_PLLP_DIV2
+/* ── Clock tree  (STM32H723ZGTx @ 550 MHz  HSE=25 MHz (PLL1: M=5 N=110 P=1)) ──── */
+#define BOARD_RCC_PLLM          5U
+#define BOARD_RCC_PLLN          110U
+#define BOARD_RCC_PLLP          1U
 #define BOARD_RCC_PLLQ          4U
 
-#define BOARD_SYSCLK_HZ         100000000UL
-#define BOARD_APB1_HZ           50000000UL
-#define BOARD_APB2_HZ           100000000UL
+#define BOARD_SYSCLK_HZ         550000000UL
+#define BOARD_APB1_HZ           137500000UL
+#define BOARD_APB2_HZ           275000000UL
 
-#define BOARD_FLASH_LATENCY     FLASH_LATENCY_3
+#define BOARD_FLASH_LATENCY     FLASH_LATENCY_4
 
 extern          uint32_t SystemCoreClock; /* = BOARD_SYSCLK_HZ at boot — updated by SystemCoreClockUpdate() */
-extern const uint8_t     AHBPrescTable[16];
-extern const uint8_t     APBPrescTable[8];
+extern const uint8_t     AHBPrescTable[8];
+extern const uint8_t     APBPrescTable[4];
 
 typedef struct {
     GPIO_TypeDef *port;       /**< GPIOA … GPIOE                              */
@@ -161,6 +162,18 @@ typedef struct {
     uint8_t       initial_state; /**< 0 = inactive, 1 = active at boot */
 } board_gpio_desc_t;
 
+#ifdef HAL_ADC_MODULE_ENABLED
+typedef struct {
+    uint8_t      dev_id;
+    ADC_TypeDef *instance;     /**< ADC1 / ADC2 / ADC3              */
+    uint32_t     channel;      /**< ADC_CHANNEL_x                   */
+    uint32_t     resolution;   /**< ADC_RESOLUTION_12B etc.         */
+    uint32_t     sample_time;  /**< ADC_SAMPLETIME_x                */
+    IRQn_Type    irqn;
+    uint32_t     irq_priority;
+} board_adc_desc_t;
+#endif /* HAL_ADC_MODULE_ENABLED */
+
 typedef struct {
     const char              *board_name;
     const board_uart_desc_t *uart_table;
@@ -172,6 +185,10 @@ typedef struct {
     uint8_t                  spi_count;
     const board_gpio_desc_t *gpio_table;
     uint8_t                  gpio_count;
+#ifdef HAL_ADC_MODULE_ENABLED
+    const board_adc_desc_t  *adc_table;
+    uint8_t                  adc_count;
+#endif /* HAL_ADC_MODULE_ENABLED */
 } board_config_t;
 
 const board_config_t    *board_get_config(void);

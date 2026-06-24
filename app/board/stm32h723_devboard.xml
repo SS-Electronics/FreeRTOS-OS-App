@@ -1,53 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Board description: STM32F411VET6 development board
+  Board description: STM32H723ZGTx development board (Nucleo-H723ZG pin-compatible)
   Vendor:  STM
-  MCU:     STM32F411VET6  —  ARM Cortex-M4F, 100 MHz, 512 KB Flash, 128 KB RAM
+  MCU:     STM32H723ZGTx — ARM Cortex-M7, 550 MHz, 1 MB Flash, 128 KB DTCM
 
-  Usage
-  ─────
-  Edit this file to match your hardware wiring.
-  Run the code generator to rebuild board_config.c and board_device_ids.h:
-
-      python3 scripts/gen_board_config.py boards/stm32f411_devboard.xml
-
-  Then rebuild the firmware:
-
-      make all
-
-  After generating, use the IDs from board_device_ids.h in application code:
-
-      #include <board/board_device_ids.h>
-      uart_mgmt_async_transmit(UART_DEBUG, data, len);
-      board_uart_register_rx_cb(UART_DEBUG, my_rx_handler);
+  Key H723 differences from F411
+  ───────────────────────────────
+  GPIO is on AHB4 (0x58020000), not AHB1 — clock enable uses AHB4ENR.
+  USART3 VCP (PD8/PD9) is the virtual COM port on Nucleo-H723ZG STLink.
+  I2C uses 400 kHz fast mode with dedicated timing register (not CCR).
 
   Pin fields
   ──────────
-    port   : GPIO port letter  (A, B, C, D, E)
-    pin    : GPIO pin number   (0 – 15)
-    af     : Alternate function number (see MCU datasheet AF table)
+    port   : GPIO port letter  (A..H)
+    pin    : GPIO pin number   (0–15)
+    af     : Alternate function number (see DS13195 Table 11/12)
     speed  : low | medium | high | very_high
     pull   : none | pullup | pulldown
 
-  I2C pin mode is always open-drain (AF_OD); UART/SPI always push-pull (AF_PP).
-
-  GPIO mode values
-  ────────────────
-    output_pp   push-pull output
-    output_od   open-drain output
-    input       floating input
-    it_rising   interrupt on rising edge
-    it_falling  interrupt on falling edge
-    it_both     interrupt on both edges
-
-  active_state : high | low   (logical "active" level of the pin)
-  initial_state: active | inactive   (state applied at board_init())
+  Alternate functions used
+  ────────────────────────
+    AF7  USART1 (PA9/PA10), USART3 (PD8/PD9)
+    AF4  I2C1   (PB8/PB9)
+    AF5  SPI1   (PA5/PA6/PA7)
 -->
 
-<board name="STM32F411 Demo Devboard"
+<board name="STM32H723 Demo Devboard"
        vendor="STM"
-       mcu="STM32F411VET6"
-       description="STM32F411VET6 development board">
+       mcu="STM32H723ZGTx"
+       description="STM32H723ZGTx Nucleo-H723ZG compatible demo board">
 
   <peripherals>
 
@@ -56,9 +37,10 @@
          ═══════════════════════════════════════════════════════════ -->
 
     <!--
-      UART_DEBUG → USART1  PA9/TX  PA10/RX
-      Primary debug / console serial port.
-      AF7 = USART1 on STM32F411 pins PA9 / PA10.
+      UART_APP → USART1  PA9/TX  PA10/RX
+      Secondary application serial port (e.g. external module / wireless).
+      AF7 = USART1 on STM32H723 pins PA9 / PA10.
+      USART1 is clocked from APB2 (up to 275 MHz on H723).
     -->
     <uart id="UART_APP"
           dev_id="0"
@@ -74,24 +56,24 @@
     </uart>
 
     <!--
-      UART_APP → USART2  PA2/TX  PA3/RX
-      OS shell CLI port (role="shell").  Input from RX ring buffer via the
-      RXNE ISR → irq_desc chain; output written to TX ring buffer and sent
-      by the TXEIE interrupt-driven drain path.
-      AF7 = USART2 on STM32F411 pins PA2 / PA3.
+      UART_DEBUG → USART3  PD8/TX  PD9/RX
+      Virtual COM port connected to STLink on Nucleo-H723ZG.
+      Role "shell" — OS shell CLI; RX via RXNE ISR, TX via TXEIE drain.
+      AF7 = USART3 on STM32H723 pins PD8 / PD9.
+      USART3 is clocked from APB1L (up to 137.5 MHz on H723).
     -->
     <uart id="UART_DEBUG"
           dev_id="1"
-          instance="USART2"
+          instance="USART3"
           baudrate="115200"
           word_len="8"
           stop_bits="1"
           parity="none"
           mode="tx_rx"
           role="shell">
-      <tx   port="A" pin="2" af="7" speed="very_high" pull="none"/>
-      <rx   port="A" pin="3" af="7" speed="very_high" pull="none"/>
-      <irq  name="USART2_IRQn" priority="5"/>
+      <tx   port="D" pin="8" af="7" speed="very_high" pull="none"/>
+      <rx   port="D" pin="9" af="7" speed="very_high" pull="none"/>
+      <irq  name="USART3_IRQn" priority="5"/>
     </uart>
 
 
@@ -100,9 +82,10 @@
          ═══════════════════════════════════════════════════════════ -->
 
     <!--
-      I2C_SENSOR_BUS → I2C1  PB6/SCL  PB9/SDA
-      Fast-mode 400 kHz bus for on-board sensors (LSM303DLHC, etc.).
-      AF4 = I2C1 on STM32F411 Discovery: SCL=PB6, SDA=PB9 (UM1842 §6.11).
+      I2C_SENSOR_BUS → I2C1  PB8/SCL  PB9/SDA
+      Fast-mode 400 kHz sensor bus.
+      AF4 = I2C1 on STM32H723 pins PB8 / PB9.
+      I2C1 is clocked from APB1L.
     -->
     <i2c id="I2C_SENSOR_BUS"
          dev_id="0"
@@ -110,7 +93,7 @@
          clock_hz="400000"
          addr_mode="7bit"
          dual_addr="disable">
-      <scl   port="B" pin="6" af="4" speed="very_high" pull="none"/>
+      <scl   port="B" pin="8" af="4" speed="very_high" pull="none"/>
       <sda   port="B" pin="9" af="4" speed="very_high" pull="none"/>
       <irq_ev name="I2C1_EV_IRQn" priority="6"/>
       <irq_er name="I2C1_ER_IRQn" priority="6"/>
@@ -123,8 +106,8 @@
 
     <!--
       SPI_FLASH_BUS → SPI1  PA5/SCK  PA6/MISO  PA7/MOSI  (software NSS)
-      SPI master @ APB2/16 ≈ 6.25 MHz for flash / peripheral chips.
-      AF5 = SPI1 on STM32F411 pins PA5 / PA6 / PA7.
+      SPI master, APB2/16 ≈ 17 MHz for external flash / peripheral chips.
+      AF5 = SPI1 on STM32H723 pins PA5 / PA6 / PA7.
     -->
     <spi id="SPI_FLASH_BUS"
          dev_id="0"
@@ -149,31 +132,31 @@
          GPIO
          ═══════════════════════════════════════════════════════════ -->
 
-    <!-- PC13 — on-board LED (active-low on most STM32F411 boards) -->
+    <!-- PB0 — LD1 green LED on Nucleo-H723ZG (active-high) -->
     <gpio id="LED_BOARD"
           dev_id="0"
-          port="C" pin="13"
+          port="B" pin="0"
           mode="output_pp"
           pull="none"
-          speed="low"
-          active_state="low"
-          initial_state="inactive"/>
-
-    <!-- PA0 — user push-button (active-high, pull-down) -->
-    <gpio id="BTN_USER"
-          dev_id="1"
-          port="A" pin="0"
-          mode="it_rising"
-          pull="pulldown"
           speed="low"
           active_state="high"
           initial_state="inactive"/>
 
-    <!-- PB0 — generic status indicator LED (active-high) -->
-    <gpio id="LED_STATUS"
-          dev_id="2"
-          port="B" pin="0"
+    <!-- PE1 — LD2 yellow LED on Nucleo-H723ZG (active-high) -->
+    <gpio id="LED_YELLOW"
+          dev_id="1"
+          port="E" pin="1"
           mode="output_pp"
+          pull="none"
+          speed="low"
+          active_state="high"
+          initial_state="inactive"/>
+
+    <!-- PC13 — B1 user push-button on Nucleo-H723ZG (active-high, no pull) -->
+    <gpio id="BTN_USER"
+          dev_id="2"
+          port="C" pin="13"
+          mode="it_rising"
           pull="none"
           speed="low"
           active_state="high"
